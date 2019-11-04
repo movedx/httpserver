@@ -22,7 +22,7 @@ einer Endlosschleife. Diese sollen mit folgenden Funktionen bedient werden:
 1. Bei einem `GET /` oder `GET /index.html` soll der Server diesen positiv
    mit einem `Hello World!` beantworten. Wer möchte darf diese Nachricht auch
    schon mit HTML verschönern.
-2. Für `GET /index.php` soll er signalisieren, dass diese Datei dauerhaft auf `/index.php`
+2. Für `GET /index.php` soll er signalisieren, dass diese Datei dauerhaft auf `/index.html`
    umgezogen ist.
 3. GET Anfragen für andere Dateien soll der Server mit einem `Not Found` beantworten.
 4. Davon abweichende Anfragen soll der Server entsprechend der Spezifikation beantworten.
