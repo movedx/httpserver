@@ -2,14 +2,11 @@
 In den nächsten Übungen werden wir einen Webserver schreiben der
 möglichst konform mit den Spezifikationen von RFC 7230-7237 sein soll.
 
-:warning: Bitte beachten Sie die [Ankündigung](https://git.uni-konstanz.de/info3/BS-PK-2018/issues/18)
-zur Bewertung des Projekts.
-
 **Abgabe:**
 Die Abgabe ist der letzte Commit vor der Abgabe der main branch.
 (Sollten Sie bereits vorarbeiten wollen, oder den Webserver anders erweitern,
 arbeiten Sie bitte in einer seperaten branch und mergen diese ggf. nach dem
-Abgabetermin. Abgabetermin ist der 12. November um 4.00 Uhr.
+Abgabetermin. Abgabetermin ist der **12. November um 4.00 Uhr**.
 
 ## Überblick
 In dieser Übung geht es um das Grundgerüst inklusive Fehlerbehandlung und einer
@@ -67,7 +64,7 @@ Lesen Sie die Header Felder als `char[]` ein.
 
 ### Tests
 Ihren Server können Sie mit `telnet`, `curl` oder einem gewöhnlichen Webbrowser testen. Zur
-Bewertung relevante Tests finden Sie in `httpCompliantTest.sh` welches Sie auch mit `make test`
+Bewertung relevante Tests finden Sie in `test01.sh` welches Sie auch mit `make test`
 aufrufen können. Beachten Sie, dass dieser Test die Uhrzeit nicht automatisch testet.
 
 ### Hinweise
