@@ -9,7 +9,7 @@
 #include <unistd.h>
 
 #define DEFAULT_PORT "8080"
-#define LISTENQUEUE 256 /* This server can only process one client simultaenously * \
+#define LISTENQUEUE 256 /* This server can only process one client simultaneously * \ \
                          * How many connections do we want to queue? */
 
 int startServer(const char *iface, const char *port, struct addrinfo *res)
