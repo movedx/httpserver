@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <unistd.h>
 
+#define DEFAULT_HOST "localhost"
 #define DEFAULT_PORT "8080"
 #define LISTENQUEUE 256 /* This server can only process one client simultaneously * \ \
                          * How many connections do we want to queue? */
@@ -23,6 +24,11 @@ int startServer(const char *iface, const char *port, struct addrinfo *res)
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_TCP;
     hints.ai_flags = AI_PASSIVE; /* socket will use bind later */
+
+    if (iface == NULL)
+    {
+        iface = DEFAULT_HOST;
+    }
 
     if (getaddrinfo(iface, port, &hints, &res) != 0)
     {
@@ -61,6 +67,11 @@ int main(int argc, char *argv[])
 
     int listenfd = startServer(iface, port, res);
 
+    const char *msg = "Hello!\n";
+    size_t len = strlen(msg);
+    const size_t BUF_SIZE = 2048;
+    char buf[BUF_SIZE];
+
     while (1)
     {
         struct sockaddr_in clientaddr;
@@ -72,9 +83,38 @@ int main(int argc, char *argv[])
             perror("accept error");
         }
 
-        //TODO: Your code (probably) starts here
-        // client is a file descriptor for the socket with the client
-        // You can use recv and send to receive and send
+        while (1)
+        {
+            ssize_t result = recv(client, buf, BUF_SIZE, 0);
+
+            for (ssize_t i = 0; i < result; i++)
+            {
+                printf("%c", buf[i]);
+            }
+
+            if (result == 0)
+            {
+                printf("Connection closed\n");
+                break;
+            }
+
+            if (result < 0)
+            {
+                perror("recv failed");
+                break;
+            }
+
+            shutdown(client, SHUT_RD);
+        }
+
+        if (send(client, msg, len, 0) == -1)
+        {
+            perror("Send failed");
+        }
+        else
+        {
+            perror("Sended");
+        }
 
         close(client);
     }
