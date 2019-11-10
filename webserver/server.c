@@ -67,10 +67,16 @@ int main(int argc, char *argv[])
 
     int listenfd = startServer(iface, port, res);
 
-    const char *msg = "Hello!\n";
-    size_t len = strlen(msg);
-    const size_t BUF_SIZE = 2048;
-    char buf[BUF_SIZE];
+    const char *response = "HTTP/1.1 200 OK\n"
+                           "Date: Thu, 19 Feb 2009 12:27:04 GMT\n"
+                           "Server: Apache/2.2.3\n"
+                           "Content-Type: text/html\n"
+                           "Content-Length: 48\n"
+                           "Connection: close\n"
+                           "\n"
+                           "<html><body><h1>Hello, World!</h1></body></html>";
+    const size_t BUF_SIZE = 8192;
+    char request[BUF_SIZE];
 
     while (1)
     {
@@ -83,31 +89,30 @@ int main(int argc, char *argv[])
             perror("accept error");
         }
 
-        while (1)
+        ssize_t result = recv(client, request, BUF_SIZE, 0);
+
+        if (result > 0)
         {
-            ssize_t result = recv(client, buf, BUF_SIZE, 0);
-
-            for (ssize_t i = 0; i < result; i++)
-            {
-                printf("%c", buf[i]);
-            }
-
-            if (result == 0)
-            {
-                printf("Connection closed\n");
-                break;
-            }
-
-            if (result < 0)
-            {
-                perror("recv failed");
-                break;
-            }
-
-            shutdown(client, SHUT_RD);
+            request[result] = '\0';
         }
 
-        if (send(client, msg, len, 0) == -1)
+        if (result == 0)
+        {
+            printf("Connection closed\n");
+            break;
+        }
+
+        if (result < 0)
+        {
+            perror("recv failed");
+            break;
+        }
+
+        shutdown(client, SHUT_RD);
+
+        printf("%s", request);
+
+        if (send(client, response, strlen(response), 0) == -1)
         {
             perror("Send failed");
         }
