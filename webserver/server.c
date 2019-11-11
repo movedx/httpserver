@@ -65,22 +65,25 @@ _Bool beginsWith(const char *test, const char *line)
 {
 	return strncmp(test, line, strlen(test)) == 0;
 }
-const char * replyDy(_Bool isLocalhost, int exist){
+const char * replyDy(int isLocalhost, int exist){
 	time_t rawtime;
 	struct tm *info;
 	time( &rawtime);
 	info = localtime( &rawtime );
 	char *string = malloc (sizeof (char) * BUF_SIZE);
 	if (isLocalhost == 1 && exist == 1) {
-		snprintf(string, BUF_SIZE, "HTTP/1.1 200 OK\nDate: %s\nServer: myServer 1.0\nContent-Type: text/html\nContent-Length: 48\nConnection: close\n\n<html><body><h1>Hello, World!</h1></body></html>",asctime(info));
-	}
-	else if (isLocalhost == 1 && exist == -1) {
-		snprintf(string, BUF_SIZE, "HTTP/1.1 301 Moved Permanently\nDate: %s\nServer: myServer 1.0\nContent-Type: text/html\nContent-Length: 48\nLocation: /index.html\nConnection: close\n\n",asctime(info));
-	}
-	else if (isLocalhost==1 && exist == 0){
+		snprintf(string, BUF_SIZE, "HTTP/1.1 200 OK\nDate: %sServer: myServer 1.0\nContent-Type: text/html\nContent-Length: 48\nConnection: close\n\n<html><body><h1>Hello, World!</h1></body></html>",asctime(info));
+	}else if (isLocalhost == 1 && exist == -1) {
+		snprintf(string, BUF_SIZE, "HTTP/1.1 301 Moved Permanently\nLocation: http://localhost:8080/index.html\nDate: %s\nServer: myServer 1.0\nContent-Type: text/html\nContent-Length: 48\nConnection: close\n\n",asctime(info));
+	}else if (isLocalhost==1 && exist == 0){
 		snprintf(string, BUF_SIZE, "HTTP/1.1 404 Not Found\nDate: %s\nServer: myServer 1.0\nContent-Type: text/html\nContent-Length: 48\nConnection: close\n",asctime(info));
-	}
-	else{
+	}else if (isLocalhost==1 && exist == -3){
+		snprintf(string, BUF_SIZE, "HTTP/1.1 501 Not Implemented\nDate: %s\nServer: myServer 1.0\nContent-Type: text/html\nContent-Length: 48\nConnection: close\n",asctime(info));
+	}else if (isLocalhost==1 && exist == -2){
+		snprintf(string, BUF_SIZE, "HTTP/1.1 400 Bad Request\nDate: %s\nServer: myServer 1.0\nContent-Type: text/html\nContent-Length: 48\nConnection: close\n",asctime(info));
+	}else if (isLocalhost==-1 && exist == 1){
+		snprintf(string, BUF_SIZE, "HTTP/1.1 400 Bad Request\nDate: %s\nServer: myServer 1.0\nContent-Type: text/html\nContent-Length: 48\nConnection: close\n",asctime(info));
+	}else{
 		snprintf(string, BUF_SIZE, "HTTP/1.1 403 Forbidden\nDate: %s\nServer: myServer 1.0\nContent-Type: text/html\nContent-Length: 48\nConnection: close\n",asctime(info));
 	}
 	return string;
@@ -130,22 +133,35 @@ int main(int argc, char *argv[])
 	const char trenner[2] = "\n";
 	char *ver = strtok((void *) request, trenner);
 	ssize_t reply;
-	_Bool isLocalhost = 0;
+	int isLocalhost = -1;
 	int exist=0;
-	while (ver != NULL){
-		if(beginsWith((char *) "GET", ver)){
-			if(strstr(ver, " / ")!=NULL || strstr(ver, "/index.html")!=NULL){
-				exist=1;
-			}
-			else if (strstr(ver, (void *)"/index.php")!=NULL){
-					exist=-1;
-			}
+	if(beginsWith((char *) "GET ", ver)){	
+		if (strstr(ver, "GET /")==NULL){
+			exist=-2;
 		}
-		else if (beginsWith((char *) "Host: localhost", ver)){
+		else if(strstr(ver, " / ")!=NULL || strstr(ver, "/index.html")!=NULL){
+			exist=1;
+		}
+		else if (strstr(ver, (void *)"/index.php")!=NULL){
+				exist=-1;
+		}
+	}
+	else {
+		exist=-3;
+	}
+	while (ver != NULL){
+		if (beginsWith((char *) "Host: localhost:", ver)){
 			isLocalhost=1;
+		}
+		else if (beginsWith((char *) "Host:", ver)||beginsWith((char *) "host:", ver)){
+			if(strcmp(ver, "ost:")>0)
+				isLocalhost = 0;
+			else
+				isLocalhost = -1;
 		}
 		ver = strtok(NULL, trenner);	
 	}
+	printf("exist: %d\nisLocalhost: %d\n", exist, isLocalhost);
 	const char * response = replyDy(isLocalhost, exist);
 	reply = send(client, response, strlen(response), 0);
 	
