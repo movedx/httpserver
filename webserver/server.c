@@ -7,9 +7,11 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
+#include <time.h> 
 
 #define DEFAULT_HOST "localhost"
 #define DEFAULT_PORT "8080"
+#define BUF_SIZE 8192
 #define LISTENQUEUE 256 /* This server can only process one client simultaneously * \ \
                          * How many connections do we want to queue? */
 
@@ -59,6 +61,30 @@ void closeServer(struct addrinfo *res)
     freeaddrinfo(res);
 }
 
+_Bool beginsWith(const char *test, const char *line)
+{
+	return strncmp(test, line, strlen(test)) == 0;
+}
+const char * replyDy(_Bool isLocalhost, int exist){
+	time_t rawtime;
+	struct tm *info;
+	time( &rawtime);
+	info = localtime( &rawtime );
+	char *string = malloc (sizeof (char) * BUF_SIZE);
+	if (isLocalhost == 1 && exist == 1) {
+		snprintf(string, BUF_SIZE, "HTTP/1.1 200 OK\nDate: %s\nServer: myServer 1.0\nContent-Type: text/html\nContent-Length: 48\nConnection: close\n\n<html><body><h1>Hello, World!</h1></body></html>",asctime(info));
+	}
+	else if (isLocalhost == 1 && exist == -1) {
+		snprintf(string, BUF_SIZE, "HTTP/1.1 301 Moved Permanently\nDate: %s\nServer: myServer 1.0\nContent-Type: text/html\nContent-Length: 48\nLocation: /index.html\nConnection: close\n\n",asctime(info));
+	}
+	else if (isLocalhost==1 && exist == 0){
+		snprintf(string, BUF_SIZE, "HTTP/1.1 404 Not Found\nDate: %s\nServer: myServer 1.0\nContent-Type: text/html\nContent-Length: 48\nConnection: close\n",asctime(info));
+	}
+	else{
+		snprintf(string, BUF_SIZE, "HTTP/1.1 403 Forbidden\nDate: %s\nServer: myServer 1.0\nContent-Type: text/html\nContent-Length: 48\nConnection: close\n",asctime(info));
+	}
+	return string;
+}
 int main(int argc, char *argv[])
 {
     const char *iface = NULL;
@@ -66,16 +92,6 @@ int main(int argc, char *argv[])
     struct addrinfo *res = NULL;
 
     int listenfd = startServer(iface, port, res);
-
-    const char *response = "HTTP/1.1 200 OK\n"
-                           "Date: Thu, 19 Feb 2009 12:27:04 GMT\n"
-                           "Server: Apache/2.2.3\n"
-                           "Content-Type: text/html\n"
-                           "Content-Length: 48\n"
-                           "Connection: close\n"
-                           "\n"
-                           "<html><body><h1>Hello, World!</h1></body></html>";
-    const size_t BUF_SIZE = 8192;
     char request[BUF_SIZE];
 
     while (1)
@@ -111,8 +127,29 @@ int main(int argc, char *argv[])
         shutdown(client, SHUT_RD);
 
         printf("%s", request);
-
-        if (send(client, response, strlen(response), 0) == -1)
+	const char trenner[2] = "\n";
+	char *ver = strtok((void *) request, trenner);
+	ssize_t reply;
+	_Bool isLocalhost = 0;
+	int exist=0;
+	while (ver != NULL){
+		if(beginsWith((char *) "GET", ver)){
+			if(strstr(ver, " / ")!=NULL || strstr(ver, "/index.html")!=NULL){
+				exist=1;
+			}
+			else if (strstr(ver, (void *)"/index.php")!=NULL){
+					exist=-1;
+			}
+		}
+		else if (beginsWith((char *) "Host: localhost", ver)){
+			isLocalhost=1;
+		}
+		ver = strtok(NULL, trenner);	
+	}
+	const char * response = replyDy(isLocalhost, exist);
+	reply = send(client, response, strlen(response), 0);
+	
+        if (reply == -1)
         {
             perror("Send failed");
         }
