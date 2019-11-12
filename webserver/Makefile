@@ -2,7 +2,7 @@
 CC	= gcc
 CFLAGS	= -std=c99 -D_POSIX_C_SOURCE=200112L -g -Wall -Wextra -Wpedantic -Wbad-function-cast \
           -Wconversion -Wwrite-strings -Wstrict-prototypes
-CFILES  = $(wildcard *.c)
+CFILES  = $(server.c)
 OFILES	= $(patsubst %.c, %.o, ${CFILES})
 EXE	= $(patsubst %.c, %  , ${CFILES})
 TESTCASES=$(patsubst %, tests/%, ${EXE})
@@ -22,4 +22,5 @@ test:	all
 
 beautify:
 	uncrustify -c ../uncrustify.cfg --replace ${CFILES}
+
 

@@ -7,7 +7,7 @@ GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-FLAGS="-s -o /dev/null" #add -v to show some debug information
+FLAGS="-s -o -v /dev/null" #add -v to show some debug information
 
 if [ -z "$1" ]; then
     echo "No host provided. This script has to been used like this: ./httpCompliantTest.sh localhost:8080"
