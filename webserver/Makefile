@@ -9,6 +9,9 @@ TESTCASES=$(patsubst %, tests/%, ${EXE})
 
 .PHONY: all clean realclean tests test-commex beautify ${TESTCASES}
 
+server: $(OFILES)
+	$(CC) $(CFLAGS) -o  server $(OFILES)
+
 all:	${EXE}
 
 clean:
@@ -18,7 +21,7 @@ realclean: clean
 	${RM} ${EXE}
 
 test:	all
-	./test01.sh localhost:8080
+	./test02.sh localhost:8080
 
 beautify:
 	uncrustify -c ../uncrustify.cfg --replace ${CFILES}
