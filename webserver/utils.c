@@ -130,6 +130,7 @@ const char *get_keys(HttpRequest *request)
         }
         keys[n++] = '\n';
     }
+    keys[n] = '\0';
     return keys;
 }
 
@@ -145,5 +146,6 @@ const char *get_values(HttpRequest *request)
         }
         values[n++] = '\n';
     }
+    values[n] = '\0';
     return values;
 }
