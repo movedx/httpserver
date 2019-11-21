@@ -18,8 +18,8 @@ typedef struct HttpRequest
     char *method;
     char *path;
     char *version;
-    char keys[MAX_HEADER_FIELDS][MAX_HEADER_FIELDKEY_SIZE];
-    char values[MAX_HEADER_FIELDS][MAX_HEADER_FIELDVALUE_SIZE];
+    char keys[MAX_HEADER_FIELDS][MAX_HEADER_FIELDKEY_SIZE + 1];
+    char values[MAX_HEADER_FIELDS][MAX_HEADER_FIELDVALUE_SIZE + 1];
     size_t fields_amount;
     char *content;
     size_t content_length;
