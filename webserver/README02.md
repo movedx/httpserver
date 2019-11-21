@@ -7,8 +7,7 @@ Die Abgabe ist der letzte Commit vor der Abgabe der main branch.
 arbeiten Sie bitte in einer seperaten branch und mergen diese ggf. nach dem
 Abgabetermin.
 
-:warning: Bitte beachten Sie die [Ankündigung](https://git.uni-konstanz.de/info3/BS-PK-2018/issues/18)
-zur Bewertung des Projekts.
+**Abgabetermin:** 26. November 2019 um 4 Uhr
 
 ## Überblick
 Diese Woche erweitern wir den Webserver um den Umgang mit dem Dateisystem.
