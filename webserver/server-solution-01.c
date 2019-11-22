@@ -17,28 +17,28 @@
 #include <signal.h>
 #include <time.h>
 
-#define DEFAULT_PORT       "8080"
-#define LISTENQUEUE        256 /* This server can only process one client simultaenously * \
-	                             * How many connections do we want to queue? */
+#define DEFAULT_PORT "8080"
+#define LISTENQUEUE 256 /* This server can only process one client simultaenously * \
+						 * How many connections do we want to queue? */
 
-#define RESPONSESTART      "HTTP/1.1 "
-#define RESPONSE400        "400 Bad Request\r\n"
-#define RESPONSE501        "501 Not Implemented\r\n"
-#define RESPONSE301        "301 Moved Permanently\r\nLocation: /index.html\r\n"
-#define RESPONSE200        "200 OK\r\n"
-#define RESPONSE404        "404 Not Found\r\n"
-#define RESPONSE304        "304 Not Modified\r\n"
+#define RESPONSESTART "HTTP/1.1 "
+#define RESPONSE400 "400 Bad Request\r\n"
+#define RESPONSE501 "501 Not Implemented\r\n"
+#define RESPONSE301 "301 Moved Permanently\r\nLocation: /index.html\r\n"
+#define RESPONSE200 "200 OK\r\n"
+#define RESPONSE404 "404 Not Found\r\n"
+#define RESPONSE304 "304 Not Modified\r\n"
 
-#define RESPONSESERVER     "Server: PK\r\n"
-#define RESPONSEDATE       "Date: " /* Date value needs to be added at runtime */
-#define RESPONSECLOSE      "Connection: close\r\n\r\n"
+#define RESPONSESERVER "Server: PK\r\n"
+#define RESPONSEDATE "Date: " /* Date value needs to be added at runtime */
+#define RESPONSECLOSE "Connection: close\r\n\r\n"
 
-#define HELLOWORLD         "Hello World!"
+#define HELLOWORLD "Hello World!"
 
-#define MAXSTRINGLENGTH    4096
-#define MAXFIELDS          30
-#define MAXFIELDKEY        32
-#define MAXFIELDVALUE      256
+#define MAXSTRINGLENGTH 4096
+#define MAXFIELDS 30
+#define MAXFIELDKEY 32
+#define MAXFIELDVALUE 256
 
 int startServer(const char *iface, const char *port, struct addrinfo *res)
 {
@@ -47,10 +47,10 @@ int startServer(const char *iface, const char *port, struct addrinfo *res)
 	struct addrinfo hints;
 
 	memset(&hints, 0, sizeof(hints));
-	hints.ai_family   = AF_INET; /* type of socket */
+	hints.ai_family = AF_INET; /* type of socket */
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
-	hints.ai_flags    = AI_PASSIVE; /* socket will use bind later */
+	hints.ai_flags = AI_PASSIVE; /* socket will use bind later */
 
 	if (getaddrinfo(iface, port, &hints, &res) != 0)
 	{
@@ -76,24 +76,20 @@ int startServer(const char *iface, const char *port, struct addrinfo *res)
 	return listenfd;
 }
 
-
 void closeServer(struct addrinfo *res)
 {
 	freeaddrinfo(res);
 }
-
 
 int substring(const char *string, const char *substring)
 {
 	return strncmp(string, substring, strlen(substring));
 }
 
-
 int substringcase(const char *string, const char *substring)
 {
 	return strncasecmp(string, substring, strlen(substring));
 }
-
 
 /* Response status code is returned on errors, if 0 then path is written in requestpath */
 int parse_header(char *request, char **requestpath, char **fieldkeys, char **fieldvalues, size_t *fields_len)
@@ -112,18 +108,18 @@ int parse_header(char *request, char **requestpath, char **fieldkeys, char **fie
 	{
 		return 400;
 	}
-	request += 4;                                    /* skip GET */
+	request += 4; /* skip GET */
 
 	char *skippedrequestpath = strstr(request, " "); /* skip until blank */
 	*skippedrequestpath = '\0';
 	skippedrequestpath++;
 
 	*requestpath = request;
-	request      = skippedrequestpath;
+	request = skippedrequestpath;
 
 	/* HTTP version now remaining in Request-Line */
-	size_t i     = 0;
-	char   *line = request;
+	size_t i = 0;
+	char *line = request;
 	while ((line = strstr(line, "\r\n")) != NULL)
 	{
 		line[0] = '\0';
@@ -138,14 +134,14 @@ int parse_header(char *request, char **requestpath, char **fieldkeys, char **fie
 		}
 
 		char *colon = strstr(line, ":");
-		if (colon == NULL)     /* Header line contains no : delimiter */
+		if (colon == NULL) /* Header line contains no : delimiter */
 		{
 			return 400;
 		}
 
-		colon[0]       = '\0';
-		fieldkeys[i]   = line;
-		colon         += 2; /* skip 0 and blank */
+		colon[0] = '\0';
+		fieldkeys[i] = line;
+		colon += 2; /* skip 0 and blank */
 		fieldvalues[i] = colon;
 		i++;
 		line = colon;
@@ -154,14 +150,13 @@ int parse_header(char *request, char **requestpath, char **fieldkeys, char **fie
 	return 0;
 }
 
-
 size_t generate_response(char **responsebuffer, int statuscode, char *requestpath, char **fieldkeys, char **fieldvalues, size_t fields_len)
 {
 	/* size for response line (+'\0') except for reason phrase */
 	char response[MAXSTRINGLENGTH];
-	int  position = sprintf(response, RESPONSESTART);
+	int position = sprintf(response, RESPONSESTART);
 	char responsedata[MAXSTRINGLENGTH] = "";
-	int  dataposition = 0;
+	int dataposition = 0;
 
 	/* From now on position will be equal to the response size ('\0' cancels) */
 	if (statuscode == 400)
@@ -201,17 +196,17 @@ size_t generate_response(char **responsebuffer, int statuscode, char *requestpat
 		}
 		else if (strncmp(requestpath, "/header/", strlen("/header/")) == 0)
 		{
-			char   *requestedkey = requestpath + strlen("/header/");
+			char *requestedkey = requestpath + strlen("/header/");
 			size_t i;
 			for (i = 0; i < fields_len; i++)
 			{
 				if (strcasecmp(fieldkeys[i], requestedkey) == 0)
 				{
 					dataposition += sprintf(responsedata + dataposition, "%s\n", fieldvalues[i]);
-					position     += sprintf(response + position, RESPONSE200);
+					position += sprintf(response + position, RESPONSE200);
 				}
 			}
-			if (i == fields_len)                  /* fieldkey has not been found */
+			if (i == fields_len) /* fieldkey has not been found */
 			{
 				position += sprintf(response + position, RESPONSE404);
 			}
@@ -224,9 +219,9 @@ size_t generate_response(char **responsebuffer, int statuscode, char *requestpat
 	position += sprintf(response + position, RESPONSESERVER);
 
 	/* Bonus Part */
-	char      timestring[50];
-	time_t    now = time(0);
-	struct tm tm  = *gmtime(&now);
+	char timestring[50];
+	time_t now = time(0);
+	struct tm tm = *gmtime(&now);
 	strftime(timestring, 50, "%a, %d %b %Y %H:%M:%S %Z", &tm);
 
 	position += sprintf(response + position, "%s%s\r\n", RESPONSEDATE, timestring);
@@ -236,26 +231,25 @@ size_t generate_response(char **responsebuffer, int statuscode, char *requestpat
 		position += sprintf(response + position, responsedata);
 	}
 	response[position] = '\0';
-	*responsebuffer    = response;
+	*responsebuffer = response;
 	return position > 0 ? (size_t)position : 0;
 }
-
 
 int main(int argc, char *argv[])
 {
 	/* If webserver should be reachable from outside localhost
 	 *  change localhost to NULL */
-	const char      *iface = "localhost";
-	const char      *port  = argc == 2 ? argv[1] : DEFAULT_PORT;
-	struct addrinfo *res   = NULL;
+	const char *iface = "localhost";
+	const char *port = argc == 2 ? argv[1] : DEFAULT_PORT;
+	struct addrinfo *res = NULL;
 
 	int listenfd = startServer(iface, port, res);
 
 	while (1)
 	{
 		struct sockaddr_in clientaddr;
-		socklen_t          addrlen = sizeof(clientaddr);
-		int                client  = accept(listenfd, (struct sockaddr *)&clientaddr, &addrlen);
+		socklen_t addrlen = sizeof(clientaddr);
+		int client = accept(listenfd, (struct sockaddr *)&clientaddr, &addrlen);
 
 		if (client < 0)
 		{
@@ -267,25 +261,25 @@ int main(int argc, char *argv[])
 
 		char buf[MAXSTRINGLENGTH];
 
-                buf[recv(client, buf, MAXSTRINGLENGTH, 0)] = '\0';
+		buf[recv(client, buf, MAXSTRINGLENGTH, 0)] = '\0';
 		printf("%s", buf);
 
-                char   *requestpath;
-		char   *fieldkeys[MAXFIELDS];
-		char   *fieldvalues[MAXFIELDS];
-		size_t fields_len     = 0;
-		int    request_result = parse_header(buf, &requestpath, fieldkeys, fieldvalues, &fields_len);
-		char   *response;
+		char *requestpath;
+		char *fieldkeys[MAXFIELDS];
+		char *fieldvalues[MAXFIELDS];
+		size_t fields_len = 0;
+		int request_result = parse_header(buf, &requestpath, fieldkeys, fieldvalues, &fields_len);
+		char *response;
 		size_t response_len = generate_response(&response, request_result, requestpath, fieldkeys, fieldvalues, fields_len);
 
-                if (response_len > MAXSTRINGLENGTH)
+		if (response_len > MAXSTRINGLENGTH)
 		{
 			fprintf(stderr, "response too large to send");
 		}
 
-                send(client, response, response_len, 0);
+		send(client, response, response_len, 0);
 
-                printf("# Response\n");
+		printf("# Response\n");
 		printf("%s", response);
 
 		close(client);
