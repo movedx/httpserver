@@ -67,6 +67,7 @@ int main(int argc, char *argv[])
     struct addrinfo *res = NULL;
 
     int listenfd = startServer(iface, port, res);
+
     char request[MAX_MESSAGE_SIZE];
 
     while (1)
@@ -99,23 +100,45 @@ int main(int argc, char *argv[])
             break;
         }
 
-        shutdown(client, SHUT_RD);
+        // shutdown(client, SHUT_RD);
 
-        puts("====================ORIGINAL REQUEST====================\n");
+        puts("\n=========================REQUEST========================\n");
         printf("%s\n", request);
         puts("========================================================\n");
 
         HttpRequest request_struct;
         parse_request(&request_struct, request);
 
+        puts("\nMETHOD:");
+        printf("%s\n", request_struct.method);
+
+        puts("\nPATH:");
+        printf("%s\n", request_struct.path);
+
+        puts("\nCONTENT-LENGTH:");
+        printf("%zu\n", request_struct.content_length);
+
+        puts("\nKEYS:");
         print_all_keys(&request_struct);
+
+        puts("\nVALUES:");
         print_all_values(&request_struct);
 
         int request_res = request_result(&request_struct);
 
         char *response;
-        generate_response(&response, request_res, request_struct.path, request_struct.keys, request_struct.values, request_struct.fields_amount);
-        ssize_t reply = send(client, response, strlen(response), 0);
+        size_t response_len = generate_response(&response, request_res, request_struct.path, request_struct.keys, request_struct.values, request_struct.fields_amount);
+
+        puts("\n========================RESPONSE========================\n");
+        printf("%s", response);
+        puts("========================================================\n");
+
+        if (response_len > MAX_MESSAGE_SIZE)
+        {
+            fprintf(stderr, "response too large to send");
+        }
+
+        ssize_t reply = send(client, response, response_len, 0);
 
         if (reply == -1)
         {
