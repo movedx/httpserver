@@ -21,7 +21,7 @@ clean:
 realclean: clean
 	${RM} ${EXE}
 
-test:	all
+test:	server
 	./test02.sh localhost:8080
 
 beautify:
