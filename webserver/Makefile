@@ -4,7 +4,7 @@ CFLAGS	= -std=c99 -D_POSIX_C_SOURCE=200112L -g -Wall -Wextra -Wpedantic -Wbad-fu
           -Wconversion -Wwrite-strings -Wstrict-prototypes
 CFILES  = utils.c server.c
 OFILES	= $(patsubst %.c, %.o, ${CFILES})
-MAIN = $(server.c)
+MAIN = server.c
 EXE	= $(patsubst %.c, %  , ${MAIN})
 TESTCASES=$(patsubst %, tests/%, ${EXE})
 
