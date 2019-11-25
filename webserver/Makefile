@@ -2,15 +2,15 @@
 CC	= gcc
 CFLAGS	= -std=c99 -D_POSIX_C_SOURCE=200112L -g -Wall -Wextra -Wpedantic -Wbad-function-cast \
           -Wconversion -Wwrite-strings -Wstrict-prototypes
-CFILES  = $(server.c)
+CFILES  = utils.c server.c
 OFILES	= $(patsubst %.c, %.o, ${CFILES})
 EXE	= $(patsubst %.c, %  , ${CFILES})
 TESTCASES=$(patsubst %, tests/%, ${EXE})
 
-.PHONY: all clean realclean tests test-commex beautify ${TESTCASES}
+.PHONY: all server clean realclean tests test-commex beautify ${TESTCASES}
 
-server: $(OFILES)
-	$(CC) $(CFLAGS) -o  server $(OFILES)
+server: $(CFILES)
+	clear && $(CC) -o ./server $(CFLAGS) $(CFILES)
 
 all:	${EXE}
 
