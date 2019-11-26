@@ -107,7 +107,17 @@ int main(int argc, char *argv[])
         puts("========================================================\n");
 
         HttpRequest request_struct;
-        parse_request(&request_struct, request);
+        int request_res = 0;
+
+        if (validate_request(request))
+        {
+            parse_request(&request_struct, request);
+            request_res = request_result(&request_struct);
+        }
+        else
+        {
+            request_res = 400;
+        }
 
         puts("\nMETHOD:");
         printf("%s\n", request_struct.method);
@@ -123,8 +133,6 @@ int main(int argc, char *argv[])
 
         puts("\nVALUES:");
         print_all_values(&request_struct);
-
-        int request_res = request_result(&request_struct);
 
         char *response;
         size_t response_len = generate_response(&response, request_res, request_struct.path, request_struct.keys, request_struct.values, request_struct.fields_amount);

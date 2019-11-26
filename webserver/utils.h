@@ -64,3 +64,5 @@ char *get_value_by_key(HttpRequest *request, const char *key);
 char *trimstr(char *str);
 
 size_t generate_response(char **responsebuffer, int statuscode, char *requestpath, char **fieldkeys, char **fieldvalues, size_t fields_len);
+
+bool validate_request(char *request);

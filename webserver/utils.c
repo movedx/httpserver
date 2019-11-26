@@ -153,15 +153,21 @@ const char *get_values(HttpRequest *request)
     return values;
 }
 
+bool validate_request(char *request)
+{
+    // TODO: implement validation.
+    return 1;
+}
+
 int request_result(HttpRequest *request)
 {
-    if (strcasecmp(get_value_by_key(request, "Host"), "localhost") != 0)
+    if (strncasecmp(get_value_by_key(request, "Host"), "localhost", 9) != 0)
     {
         /* Note: HTTP 1.0 lacks Host field, so this breaks it, but that's OK for us */
         return 400;
     }
 
-    if (strcasecmp(request->method, "GET ") != 0)
+    if (strcasecmp(request->method, "GET") != 0) // TODO: Add more methods later and use ALLOWED_METHODS
     {
         return 501;
     }
