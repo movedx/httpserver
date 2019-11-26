@@ -7,6 +7,11 @@
 #include <ctype.h>
 #include <time.h>
 #include <strings.h>
+#include <dirent.h>
+#include <inttypes.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #define MAX_HEADER_FIELDS 30
 #define MAX_HEADER_FIELDKEY_SIZE 32
@@ -24,6 +29,9 @@
 #define RESPONSESERVER "Server: PK\r\n"
 #define RESPONSEDATE "Date: " /* Date value needs to be added at runtime */
 #define RESPONSECLOSE "Connection: close\r\n\r\n"
+#define CONTENT_LENGTH "Content-Length: " /* Content-Length needs to be added at runtime */
+#define CONTENT_TYPE_TEXT_HTML "Content-Type: text/html\r\n"
+#define ROOTDIR "/tmp/www"
 
 #define HELLOWORLD "Hello World!"
 
@@ -32,7 +40,7 @@ extern const char *ALLOWED_METHODS;
 typedef struct HttpRequest
 {
     char *method;
-    char *path;
+    char path[MAX_HEADER_FIELDVALUE_SIZE];
     char *version;
     char *keys[MAX_HEADER_FIELDS];
     char *values[MAX_HEADER_FIELDS];
@@ -66,3 +74,11 @@ char *trimstr(char *str);
 size_t generate_response(char **responsebuffer, int statuscode, char *requestpath, char **fieldkeys, char **fieldvalues, size_t fields_len);
 
 bool validate_request(char *request);
+
+void listdir(const char *path);
+
+ssize_t readfile(char *data, const char *path);
+
+int is_regular_file(const char *path);
+
+int is_directory(const char *path);

@@ -12,7 +12,12 @@ int parse_request(HttpRequest *request, char *msg)
 
     // todo: check if method is in ALLOWED_METHODS.
 
-    request->path = strtok(NULL, " ");
+    char *path = strtok(NULL, " ");
+    char new_path[MAX_HEADER_FIELDVALUE_SIZE];
+    new_path[0] = '\0';
+    strcpy(new_path, ROOTDIR);
+    strcat(new_path, path);
+    strcpy(request->path, new_path);
 
     request->version = strtok(NULL, "\n");
 
@@ -156,6 +161,7 @@ const char *get_values(HttpRequest *request)
 bool validate_request(char *request)
 {
     // TODO: implement validation.
+    request = request;
     return 1;
 }
 
@@ -227,6 +233,7 @@ size_t generate_response(char **responsebuffer, int statuscode, char *requestpat
     int position = sprintf(response, RESPONSESTART);
     char responsedata[MAX_MESSAGE_SIZE] = "";
     int dataposition = 0;
+    ssize_t content_length = 0;
 
     /* From now on position will be equal to the response size ('\0' cancels) */
     if (statuscode == 400)
@@ -236,6 +243,18 @@ size_t generate_response(char **responsebuffer, int statuscode, char *requestpat
     else if (statuscode == 501)
     {
         position += sprintf(response + position, RESPONSE501);
+    }
+    else if (statuscode == 200)
+    {
+        char *data = NULL;
+        if (is_directory(requestpath))
+        {
+            listdir(requestpath);
+        }
+        if (is_regular_file(requestpath))
+        {
+            content_length = readfile(data, requestpath);
+        }
     }
     else
     {
@@ -286,7 +305,23 @@ size_t generate_response(char **responsebuffer, int statuscode, char *requestpat
             position += sprintf(response + position, RESPONSE404);
         }
     }
+
+    if (statuscode == 200)
+    {
+        position += sprintf(response + position, RESPONSE200);
+    }
+
     position += sprintf(response + position, RESPONSESERVER);
+
+    if (content_length > 0 && content_length < MAX_MESSAGE_SIZE)
+    {
+        position += sprintf(response + position, "%s%zd\r\n", CONTENT_LENGTH, content_length);
+        position += sprintf(response + position, CONTENT_TYPE_TEXT_HTML);
+    }
+    else if (content_length > MAX_MESSAGE_SIZE)
+    {
+        puts("\nERROR: EXCEEDED MAX_MESSAGE_SIZE <<<<<<<\n");
+    }
 
     /* Bonus Part */
     char timestring[50];
@@ -300,7 +335,61 @@ size_t generate_response(char **responsebuffer, int statuscode, char *requestpat
     {
         position += sprintf(response + position, responsedata);
     }
+
     response[position] = '\0';
     *responsebuffer = response;
     return position > 0 ? (size_t)position : 0;
+}
+
+void listdir(const char *path)
+{
+    DIR *d;
+    struct dirent *dir;
+    d = opendir(path);
+    if (d)
+    {
+        puts("\nLISTING DIRECTORY:");
+        while ((dir = readdir(d)) != NULL)
+        {
+            printf("%s\n", dir->d_name);
+        }
+        closedir(d);
+    }
+}
+
+ssize_t readfile(char *data, const char *path)
+{
+    FILE *file = fopen(path, "r");
+    ssize_t n = 0;
+    int c;
+
+    if (file == NULL)
+        return 0; //could not open file
+
+    data = malloc(MAX_MESSAGE_SIZE);
+
+    while ((c = fgetc(file)) != EOF)
+    {
+        data[n++] = (char)c;
+        if (n >= MAX_MESSAGE_SIZE)
+            break;
+    }
+
+    // don't forget to terminate with the null character
+    data[n] = '\0';
+    return n;
+}
+
+int is_regular_file(const char *path)
+{
+    struct stat path_stat;
+    stat(path, &path_stat);
+    return S_ISREG(path_stat.st_mode);
+}
+
+int is_directory(const char *path)
+{
+    struct stat path_stat;
+    stat(path, &path_stat);
+    return S_ISDIR(path_stat.st_mode);
 }
