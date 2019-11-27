@@ -1,3 +1,7 @@
+//§2:30.
+//Ihr solltet nur eine Lösungsversion im Repo haben,
+// um zu probieren könnt ihr branches nutzen
+// Einrückung ist inkonsistent
 #include <netinet/ip.h>
 #include <sys/types.h>
 #include <sys/socket.h>
