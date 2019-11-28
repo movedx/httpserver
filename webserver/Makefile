@@ -27,5 +27,5 @@ test:	all
 	./test04.sh localhost:8080
 
 beautify:
-	uncrustify -c ../uncrustify.cfg --replace ${CFILES}
+	uncrustify -c ./uncrustify.cfg --replace ${CFILES}
 
