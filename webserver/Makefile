@@ -1,7 +1,7 @@
 # See https://www.gnu.org/software/make/manual/html_node/ for more information
 CC	= gcc
 CFLAGS	= -std=c99 -D_POSIX_C_SOURCE=200112L -g -Wall -Wextra -Wpedantic -Wbad-function-cast \
-          -Wconversion -Wwrite-strings -Wstrict-prototypes
+          -Wconversion -Wwrite-strings -Wstrict-prototypes -Wimplicit-function-declaration
 CFILES  = utils.c server.c
 OFILES	= $(patsubst %.c, %.o, ${CFILES})
 MAIN = server.c
