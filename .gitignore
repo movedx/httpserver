@@ -1,3 +1,4 @@
 .vscode/
 webserver/server
 webserver/Tests/tests
+*.o

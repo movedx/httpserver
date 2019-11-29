@@ -25,8 +25,8 @@ cp netzwerk.jpg $WEBROOT/
 touch -d "11 Jan 2019 02:03:04 GMT" $WEBROOT/netzwerk.jpg
 echo $TESTSTR > $WEBROOT/$TESTNAME
 echo File 2 > $WEBROOT/dir2/file_2
-echo "<h1>Welcome $TESTSTR</h1><p>Here is no content</p>" > $WEBROOT/dir1/index.html
-echo "<h1>Network</h1><img alt='network image' src='netzwerk.jpg' />" > $WEBROOT/network.html
+echo "<!DOCTYPE html><html><h1>Welcome $TESTSTR</h1><p>Here is no content</p></html>" > $WEBROOT/dir1/index.html
+echo "<!DOCTYPE html><html><h1>Network</h1><img alt='network image' src='netzwerk.jpg' /></html>" > $WEBROOT/network.html
 echo forbidden > $WEBROOT/../forbidden
 
 NUMBER_OF_FAILED_TESTS=0
