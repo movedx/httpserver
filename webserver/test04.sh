@@ -52,8 +52,8 @@ t "$(curl $FLAGS -X "GET" -w "%{http_code};%{size_download}\n" -o /dev/null $HOS
 t "$(curl $FLAGS -X "GET" -w "%{http_code};%{size_download}\n" -o /dev/null $HOST/large_file)" "200;1073741824" "Server handles large files"
 key=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 1025 | head -n 1)
 value=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 1025 | head -n 1)
-t "$(curl -sb -X GET -H "$key: $value" $HOST/header/$key)" "$value" "Server outputs requested header field"
-t "$(curl -s -X GET -H "00:00" -H "01:01" -H "02:02" -H "03:03" -H "04:04" -H "05:05" -H "06:06" -H "07:07" -H "08:08" -H "09:09" -H "10:10" -H "11:11" -H "12:12" -H "13:13" -H "14:14" -H "15:15" -H "16:16" -H "17:17" -H "18:18" -H "19:19" -H "20:20" -H "21:21" -H "22:22" -H "23:23" -H "24:24" -H "25:25" -H "26:26" -H "27:27" -H "28:28" -H "29:29" -H "30:30" -H "31:31" -H "32:32" -H "33:33" -H "34:34" -H "35:35" $HOST/keys | wc -l)" "39" "Server responds with status code 404 for an unknown path"
+t "$(curl -sb -X GET -H "$key: $value" $HOST/header/$key)" "$value" "Server allows for arbitrary length header fields"
+t "$(curl -s -X GET -H "00:00" -H "01:01" -H "02:02" -H "03:03" -H "04:04" -H "05:05" -H "06:06" -H "07:07" -H "08:08" -H "09:09" -H "10:10" -H "11:11" -H "12:12" -H "13:13" -H "14:14" -H "15:15" -H "16:16" -H "17:17" -H "18:18" -H "19:19" -H "20:20" -H "21:21" -H "22:22" -H "23:23" -H "24:24" -H "25:25" -H "26:26" -H "27:27" -H "28:28" -H "29:29" -H "30:30" -H "31:31" -H "32:32" -H "33:33" -H "34:34" -H "35:35" $HOST/keys | wc -l)" "39" "Server allows for unlimited header fields"
 
 
 if [ $NUMBER_OF_FAILED_TESTS -gt 0 ]; then
