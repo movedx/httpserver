@@ -7,7 +7,7 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
-#include "utils.h"
+#include "server_utils.h"
 
 #define DEFAULT_HOST "localhost"
 #define DEFAULT_PORT "8080"
@@ -70,6 +70,8 @@ int main(int argc, char *argv[])
 
     char request[MAX_MESSAGE_SIZE];
 
+    unsigned int request_num = 0;
+
     while (1)
     {
         struct sockaddr_in clientaddr;
@@ -86,6 +88,7 @@ int main(int argc, char *argv[])
         if (result > 0)
         {
             request[result] = '\0';
+            request_num++;
         }
 
         if (result == 0)
@@ -102,7 +105,7 @@ int main(int argc, char *argv[])
 
         // shutdown(client, SHUT_RD);
 
-        puts("\n=========================REQUEST========================\n");
+        printf("\n=========================REQUEST %u=====================\n", request_num);
         printf("%s\n", request);
         puts("========================================================\n");
 

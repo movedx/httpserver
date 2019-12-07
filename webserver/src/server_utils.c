@@ -1,4 +1,4 @@
-#include "utils.h"
+#include "server_utils.h"
 
 const char *ALLOWED_METHODS = "GET"
                               "POST"; //todo: add methods
@@ -199,33 +199,6 @@ char *get_value_by_key(HttpRequest *request, const char *key)
     return NULL;
 }
 
-// Note: This function returns a pointer to a substring of the original string.
-// If the given string was allocated dynamically, the caller must not overwrite
-// that pointer with the returned value, since the original pointer must be
-// deallocated using the same allocator with which it was allocated.  The return
-// value must NOT be deallocated using free() etc.
-char *trimstr(char *str)
-{
-    char *end;
-
-    // Trim leading space
-    while (isspace((unsigned char)*str))
-        str++;
-
-    if (*str == 0) // All spaces?
-        return str;
-
-    // Trim trailing space
-    end = str + strlen(str) - 1;
-    while (end > str && isspace((unsigned char)*end))
-        end--;
-
-    // Write new null terminator character
-    end[1] = '\0';
-
-    return str;
-}
-
 size_t generate_response(char **responsebuffer, int statuscode, char *requestpath, char **fieldkeys, char **fieldvalues, size_t fields_len)
 {
     /* size for response line (+'\0') except for reason phrase */
@@ -339,57 +312,4 @@ size_t generate_response(char **responsebuffer, int statuscode, char *requestpat
     response[position] = '\0';
     *responsebuffer = response;
     return position > 0 ? (size_t)position : 0;
-}
-
-void listdir(const char *path)
-{
-    DIR *d;
-    struct dirent *dir;
-    d = opendir(path);
-    if (d)
-    {
-        puts("\nLISTING DIRECTORY:");
-        while ((dir = readdir(d)) != NULL)
-        {
-            printf("%s\n", dir->d_name);
-        }
-        closedir(d);
-    }
-}
-
-ssize_t readfile(char *data, const char *path)
-{
-    FILE *file = fopen(path, "r");
-    ssize_t n = 0;
-    int c;
-
-    if (file == NULL)
-        return 0; //could not open file
-
-    data = malloc(MAX_MESSAGE_SIZE);
-
-    while ((c = fgetc(file)) != EOF)
-    {
-        data[n++] = (char)c;
-        if (n >= MAX_MESSAGE_SIZE)
-            break;
-    }
-
-    // don't forget to terminate with the null character
-    data[n] = '\0';
-    return n;
-}
-
-int is_regular_file(const char *path)
-{
-    struct stat path_stat;
-    stat(path, &path_stat);
-    return S_ISREG(path_stat.st_mode);
-}
-
-int is_directory(const char *path)
-{
-    struct stat path_stat;
-    stat(path, &path_stat);
-    return S_ISDIR(path_stat.st_mode);
 }

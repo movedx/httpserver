@@ -2,16 +2,17 @@
 CC	= gcc
 CFLAGS	= -std=c99 -D_POSIX_C_SOURCE=200112L -g -Wall -Wextra -Wpedantic -Wbad-function-cast \
           -Wconversion -Wwrite-strings -Wstrict-prototypes -Wimplicit-function-declaration -D_GNU_SOURCE
-CFILES  = utils.c server.c
-OFILES	= $(patsubst %.c, %.o, ${CFILES})
-MAIN = server.c
+SRC_PATH = ../webserver/src
+CFILES  = ${SRC_PATH}/server_utils.c ${SRC_PATH}/server.c ${SRC_PATH}/file_utils.c ${SRC_PATH}/string_utils.c
+# OFILES	= $(patsubst %.c, %.o, ${CFILES})
+MAIN = ../webserver/src/server.c
 EXE	= $(patsubst %.c, %  , ${MAIN})
 TESTCASES=$(patsubst %, tests/%, ${EXE})
 
 .PHONY: all clean realclean test unittest beautify ${TESTCASES}
 
 server: $(OFILES)
-	$(CC) $(CFLAGS) -o server $(OFILES)
+	$(CC) $(CFLAGS) -o server $(CFILES)
 
 all: server unittest
 
@@ -22,7 +23,7 @@ realclean: clean
 	${RM} ${EXE}
 
 unittest: all
-	$(CC) $(CFLAGS) -o test test_stringlist.c stringlist.c
+	$(CC) $(CFLAGS) -o test ../webserver/Tests/test_stringlist.c ../webserver/src/stringlist.c
 
 test:	all
 	./test04.sh localhost:8080

@@ -7,11 +7,12 @@
 #include <ctype.h>
 #include <time.h>
 #include <strings.h>
-#include <dirent.h>
 #include <inttypes.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include "file_utils.h"
+#include "string_utils.h"
 
 #define MAX_HEADER_FIELDS 30
 #define MAX_HEADER_FIELDKEY_SIZE 32
@@ -69,16 +70,6 @@ int request_result(HttpRequest *request);
 
 char *get_value_by_key(HttpRequest *request, const char *key);
 
-char *trimstr(char *str);
-
 size_t generate_response(char **responsebuffer, int statuscode, char *requestpath, char **fieldkeys, char **fieldvalues, size_t fields_len);
 
 bool validate_request(char *request);
-
-void listdir(const char *path);
-
-ssize_t readfile(char *data, const char *path);
-
-int is_regular_file(const char *path);
-
-int is_directory(const char *path);
