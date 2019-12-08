@@ -23,7 +23,7 @@ realclean: clean
 	${RM} ${EXE}
 
 unittest: all
-	$(CC) $(CFLAGS) -o test ../webserver/Tests/test_stringlist.c ../webserver/src/stringlist.c
+	$(CC) $(CFLAGS) -o test ../webserver/src/test_stringlist.c ../webserver/src/stringlist.c
 
 test:	all
 	./test04.sh localhost:8080

@@ -4,24 +4,36 @@
 #include <stdlib.h>
 #include "stringlist.h"
 
-void testempty(void){
-	stringlist* sl = stringlist_new(NULL);
+void testempty(void)
+{
+	stringlist *sl = stringlist_new(NULL);
 	char *string = stringlist_string(sl);
 	assert(strlen(string) == 0);
 	free(string);
 	stringlist_free(sl);
 }
 
-void testempty2(void){
-	stringlist* sl = stringlist_new("");
+void testempty2(void)
+{
+	stringlist *sl = stringlist_new("");
 	char *string = stringlist_string(sl);
 	assert(strlen(string) == 0);
 	free(string);
 	stringlist_free(sl);
 }
 
-void testappend(void){
-	stringlist* sl = stringlist_new("abc");
+void testempty3(void)
+{
+	stringlist *sl = stringlist_new("");
+	char *string = stringlist_string(sl);
+	assert(strcmp(string, "") == 0);
+	free(string);
+	stringlist_free(sl);
+}
+
+void testappend(void)
+{
+	stringlist *sl = stringlist_new("abc");
 	stringlist_append(sl, "defg");
 	stringlist_append(sl, "hij");
 	stringlist_append(sl, "klmnopqrst");
@@ -32,8 +44,22 @@ void testappend(void){
 	stringlist_free(sl);
 }
 
-void testappendnull(void){
-	stringlist* sl = stringlist_new("abc");
+void testappend2(void)
+{
+	stringlist *sl = stringlist_new("abc");
+	stringlist_append(sl, "defg");
+	stringlist_append(sl, "hij");
+	stringlist_append(sl, "klmnopqrstu");
+	stringlist_append(sl, "vwxyz");
+	char *string = stringlist_string(sl);
+	assert(strcmp(string, "abcdefghijklmnopqrstuvwxyz") == 0);
+	free(string);
+	stringlist_free(sl);
+}
+
+void testappendnull(void)
+{
+	stringlist *sl = stringlist_new("abc");
 	stringlist_append(sl, NULL);
 	stringlist_append(sl, "def");
 	char *string = stringlist_string(sl);
@@ -42,8 +68,9 @@ void testappendnull(void){
 	stringlist_free(sl);
 }
 
-void testappendempty(void){
-	stringlist* sl = stringlist_new("abc");
+void testappendempty(void)
+{
+	stringlist *sl = stringlist_new("abc");
 	stringlist_append(sl, "");
 	stringlist_append(sl, "def");
 	char *string = stringlist_string(sl);
@@ -52,8 +79,9 @@ void testappendempty(void){
 	stringlist_free(sl);
 }
 
-void testlength(void){
-	stringlist* sl = stringlist_new("abc");
+void testlength(void)
+{
+	stringlist *sl = stringlist_new("abc");
 	stringlist_append(sl, "defg");
 	stringlist_append(sl, "hij");
 	stringlist_append(sl, "klmnopqrst");
@@ -69,7 +97,9 @@ int main(void)
 {
 	testempty();
 	testempty2();
+	testempty3();
 	testappend();
+	testappend2();
 	testappendempty();
 	testappendnull();
 	testlength();

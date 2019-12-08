@@ -2,6 +2,9 @@
 #define STRINGLIST_H
 
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <assert.h>
 
 struct stringlistnode
 {
@@ -14,6 +17,7 @@ struct stringlist
 	struct stringlistnode *first;
 	struct stringlistnode *last;
 	size_t length;
+	size_t length_concatenated;
 };
 typedef struct stringlist stringlist;
 
@@ -28,5 +32,7 @@ char *stringlist_string(stringlist *list);
 size_t stringlist_length(stringlist *list);
 /* Frees all memory associated for the stringlist */
 void stringlist_free(stringlist *list);
+
+struct stringlistnode *stringlistnode_new(const char *initialstring);
 
 #endif
