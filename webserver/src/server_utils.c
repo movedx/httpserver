@@ -14,12 +14,14 @@ int parse_request(Request *request, char *msg)
 
     // todo: check if method is in ALLOWED_METHODS.
 
-    char *path = strtok(NULL, " ");
-    char new_path[MAX_HEADER_FIELDVALUE_SIZE];
-    new_path[0] = '\0';
-    strcpy(new_path, ROOTDIR);
-    strcat(new_path, path);
-    strcpy(request->path, new_path);
+    // char *path = strtok(NULL, " ");
+    // char new_path[MAX_PATH_SIZE];
+    // new_path[0] = '\0';
+    // strcpy(new_path, ROOTDIR);
+    // strcat(new_path, path);
+    // strcpy(request->path, new_path);
+
+    request->path = stringlist_new(strtok(NULL, " "));
 
     request->version = strtok(NULL, "\n");
 
@@ -27,6 +29,8 @@ int parse_request(Request *request, char *msg)
 
     if (contains_fields)
     {
+        request->headers_amount = 0;
+
         char *key = strtok(NULL, " :\r\n");
         char *value = strtok(NULL, "\r\n");
 
@@ -169,7 +173,7 @@ int request_result(Request *request)
         return 501;
     }
 
-    if (strcasecmp(request->method, "GET") != 0 || request->path[0] != '/')
+    if (strcasecmp(request->method, "GET") != 0 || request->path->first->string[0] != '/')
     {
         return 400;
     }
@@ -235,6 +239,14 @@ void request_add_content(Request *request, const char *data)
     }
 }
 
+void request_free(Request *request)
+{
+    stringlist_free(request->content);
+    stringlist_free(request->headers);
+    stringlist_free(request->path);
+    free(request);
+}
+
 /* 
  * 
  * 
@@ -251,120 +263,120 @@ void request_add_content(Request *request, const char *data)
  * 
  */
 
-size_t generate_response_deprecated(char **responsebuffer, int statuscode, char *requestpath, char **fieldkeys, char **fieldvalues, size_t fields_len)
-{
-    /* size for response line (+'\0') except for reason phrase */
-    char response[MAX_MESSAGE_SIZE];
-    int position = sprintf(response, RESPONSESTART);
-    char responsedata[MAX_MESSAGE_SIZE] = "";
-    int dataposition = 0;
-    ssize_t content_length = 0;
+// size_t generate_response_deprecated(char **responsebuffer, int statuscode, char *requestpath, char **fieldkeys, char **fieldvalues, size_t fields_len)
+// {
+//     /* size for response line (+'\0') except for reason phrase */
+//     char response[MAX_MESSAGE_SIZE];
+//     int position = sprintf(response, RESPONSESTART);
+//     char responsedata[MAX_MESSAGE_SIZE] = "";
+//     int dataposition = 0;
+//     ssize_t content_length = 0;
 
-    /* From now on position will be equal to the response size ('\0' cancels) */
-    if (statuscode == 400)
-    {
-        position += sprintf(response + position, RESPONSE400);
-    }
-    else if (statuscode == 501)
-    {
-        position += sprintf(response + position, RESPONSE501);
-    }
-    else if (statuscode == 200)
-    {
-        char *data = NULL;
-        if (is_directory(requestpath))
-        {
-            listdir(requestpath);
-        }
-        if (is_regular_file(requestpath))
-        {
-            content_length = readfile(data, requestpath);
-        }
-    }
-    else
-    {
-        if (strcmp(requestpath, "/index.php") == 0)
-        {
-            position += sprintf(response + position, RESPONSE301);
-        }
-        else if ((strcmp(requestpath, "/index.html") == 0) || (strcmp(requestpath, "/") == 0))
-        {
-            position += sprintf(response + position, RESPONSE200);
-            strcpy(responsedata, HELLOWORLD);
-        }
-        else if (strcmp(requestpath, "/keys") == 0)
-        {
-            position += sprintf(response + position, RESPONSE200);
-            for (size_t i = 0; i < fields_len; i++)
-            {
-                dataposition += sprintf(responsedata + dataposition, "%s\n", fieldkeys[i]);
-            }
-        }
-        else if (strcmp(requestpath, "/values") == 0)
-        {
-            position += sprintf(response + position, RESPONSE200);
-            for (size_t i = 0; i < fields_len; i++)
-            {
-                dataposition += sprintf(responsedata + dataposition, "%s\n", fieldvalues[i]);
-            }
-        }
-        else if (strncmp(requestpath, "/header/", strlen("/header/")) == 0)
-        {
-            char *requestedkey = requestpath + strlen("/header/");
-            size_t i;
-            for (i = 0; i < fields_len; i++)
-            {
-                if (strcasecmp(fieldkeys[i], requestedkey) == 0)
-                {
-                    dataposition += sprintf(responsedata + dataposition, "%s\n", fieldvalues[i]);
-                    position += sprintf(response + position, RESPONSE200);
-                }
-            }
-            if (i == fields_len) /* fieldkey has not been found */
-            {
-                position += sprintf(response + position, RESPONSE404);
-            }
-        }
-        else
-        {
-            position += sprintf(response + position, RESPONSE404);
-        }
-    }
+//     /* From now on position will be equal to the response size ('\0' cancels) */
+//     if (statuscode == 400)
+//     {
+//         position += sprintf(response + position, RESPONSE400);
+//     }
+//     else if (statuscode == 501)
+//     {
+//         position += sprintf(response + position, RESPONSE501);
+//     }
+//     else if (statuscode == 200)
+//     {
+//         char *data = NULL;
+//         if (is_directory(requestpath))
+//         {
+//             listdir(requestpath);
+//         }
+//         if (is_regular_file(requestpath))
+//         {
+//             content_length = readfile(data, requestpath);
+//         }
+//     }
+//     else
+//     {
+//         if (strcmp(requestpath, "/index.php") == 0)
+//         {
+//             position += sprintf(response + position, RESPONSE301);
+//         }
+//         else if ((strcmp(requestpath, "/index.html") == 0) || (strcmp(requestpath, "/") == 0))
+//         {
+//             position += sprintf(response + position, RESPONSE200);
+//             strcpy(responsedata, HELLOWORLD);
+//         }
+//         else if (strcmp(requestpath, "/keys") == 0)
+//         {
+//             position += sprintf(response + position, RESPONSE200);
+//             for (size_t i = 0; i < fields_len; i++)
+//             {
+//                 dataposition += sprintf(responsedata + dataposition, "%s\n", fieldkeys[i]);
+//             }
+//         }
+//         else if (strcmp(requestpath, "/values") == 0)
+//         {
+//             position += sprintf(response + position, RESPONSE200);
+//             for (size_t i = 0; i < fields_len; i++)
+//             {
+//                 dataposition += sprintf(responsedata + dataposition, "%s\n", fieldvalues[i]);
+//             }
+//         }
+//         else if (strncmp(requestpath, "/header/", strlen("/header/")) == 0)
+//         {
+//             char *requestedkey = requestpath + strlen("/header/");
+//             size_t i;
+//             for (i = 0; i < fields_len; i++)
+//             {
+//                 if (strcasecmp(fieldkeys[i], requestedkey) == 0)
+//                 {
+//                     dataposition += sprintf(responsedata + dataposition, "%s\n", fieldvalues[i]);
+//                     position += sprintf(response + position, RESPONSE200);
+//                 }
+//             }
+//             if (i == fields_len) /* fieldkey has not been found */
+//             {
+//                 position += sprintf(response + position, RESPONSE404);
+//             }
+//         }
+//         else
+//         {
+//             position += sprintf(response + position, RESPONSE404);
+//         }
+//     }
 
-    if (statuscode == 200)
-    {
-        position += sprintf(response + position, RESPONSE200);
-    }
+//     if (statuscode == 200)
+//     {
+//         position += sprintf(response + position, RESPONSE200);
+//     }
 
-    position += sprintf(response + position, RESPONSESERVER);
+//     position += sprintf(response + position, RESPONSESERVER);
 
-    if (content_length > 0 && content_length < MAX_MESSAGE_SIZE)
-    {
-        position += sprintf(response + position, "%s%zd\r\n", CONTENT_LENGTH, content_length);
-        position += sprintf(response + position, CONTENT_TYPE_TEXT_HTML);
-    }
-    else if (content_length > MAX_MESSAGE_SIZE)
-    {
-        puts("\nERROR: EXCEEDED MAX_MESSAGE_SIZE <<<<<<<\n");
-    }
+//     if (content_length > 0 && content_length < MAX_MESSAGE_SIZE)
+//     {
+//         position += sprintf(response + position, "%s%zd\r\n", CONTENT_LENGTH, content_length);
+//         position += sprintf(response + position, CONTENT_TYPE_TEXT_HTML);
+//     }
+//     else if (content_length > MAX_MESSAGE_SIZE)
+//     {
+//         puts("\nERROR: EXCEEDED MAX_MESSAGE_SIZE <<<<<<<\n");
+//     }
 
-    /* Bonus Part */
-    char timestring[50];
-    time_t now = time(0);
-    struct tm tm = *gmtime(&now);
-    strftime(timestring, 50, "%a, %d %b %Y %H:%M:%S %Z", &tm);
+//     /* Bonus Part */
+//     char timestring[50];
+//     time_t now = time(0);
+//     struct tm tm = *gmtime(&now);
+//     strftime(timestring, 50, "%a, %d %b %Y %H:%M:%S %Z", &tm);
 
-    position += sprintf(response + position, "%s%s\r\n", RESPONSEDATE, timestring);
-    position += sprintf(response + position, RESPONSECLOSE);
-    if (statuscode == 0)
-    {
-        position += sprintf(response + position, responsedata);
-    }
+//     position += sprintf(response + position, "%s%s\r\n", RESPONSEDATE, timestring);
+//     position += sprintf(response + position, RESPONSECLOSE);
+//     if (statuscode == 0)
+//     {
+//         position += sprintf(response + position, responsedata);
+//     }
 
-    response[position] = '\0';
-    *responsebuffer = response;
-    return position > 0 ? (size_t)position : 0;
-}
+//     response[position] = '\0';
+//     *responsebuffer = response;
+//     return position > 0 ? (size_t)position : 0;
+// }
 
 char *response_to_string(Response *response)
 {

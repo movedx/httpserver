@@ -19,7 +19,7 @@
 #define MAX_HEADER_FIELDKEY_SIZE 32
 #define MAX_HEADER_FIELDVALUE_SIZE 256
 #define MAX_MESSAGE_SIZE 4096
-#define MAX_PATH_SIZE 2048
+#define MAX_PATH_SIZE 10000
 
 #define RESPONSESTART "HTTP/1.1 "
 #define RESPONSE400 "400 Bad Request\r\n"
@@ -43,7 +43,7 @@ extern const char *ALLOWED_METHODS;
 typedef struct Request
 {
     char *method;
-    char path[MAX_PATH_SIZE];
+    StringList *path;
     char *version;
     StringList *headers;
     size_t headers_amount;
@@ -116,4 +116,4 @@ Response *response_generate(Request *request); // TODO: implement
 // Returns the string, caller needs to free it
 char *response_make_date_header(void);
 
-size_t generate_response_deprecated(char **responsebuffer, int statuscode, char *requestpath, char **fieldkeys, char **fieldvalues, size_t fields_len);
+// size_t generate_response_deprecated(char **responsebuffer, int statuscode, char *requestpath, char **fieldkeys, char **fieldvalues, size_t fields_len);

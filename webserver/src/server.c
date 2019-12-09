@@ -9,10 +9,10 @@
 #include <unistd.h>
 #include "server_utils.h"
 
-#define DEFAULT_HOST    "localhost"
-#define DEFAULT_PORT    "8080"
-#define LISTENQUEUE     256 /* This server can only process one client simultaneously * \ \
-	                          * How many connections do we want to queue? */
+#define DEFAULT_HOST "localhost"
+#define DEFAULT_PORT "8080"
+#define LISTENQUEUE 256 /* This server can only process one client simultaneously * \ \
+						 * How many connections do we want to queue? */
 
 int startServer(const char *iface, const char *port, struct addrinfo *res)
 {
@@ -21,10 +21,10 @@ int startServer(const char *iface, const char *port, struct addrinfo *res)
 	struct addrinfo hints;
 
 	memset(&hints, 0, sizeof(hints));
-	hints.ai_family   = AF_INET;      /* type of socket */
+	hints.ai_family = AF_INET; /* type of socket */
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
-	hints.ai_flags    = AI_PASSIVE;      /* socket will use bind later */
+	hints.ai_flags = AI_PASSIVE; /* socket will use bind later */
 
 	if (iface == NULL)
 	{
@@ -55,18 +55,16 @@ int startServer(const char *iface, const char *port, struct addrinfo *res)
 	return listenfd;
 }
 
-
 void closeServer(struct addrinfo *res)
 {
 	freeaddrinfo(res);
 }
 
-
 int main(int argc, char *argv[])
 {
-	const char      *iface = NULL;
-	const char      *port  = argc == 2 ? argv[1] : DEFAULT_PORT;
-	struct addrinfo *res   = NULL;
+	const char *iface = NULL;
+	const char *port = argc == 2 ? argv[1] : DEFAULT_PORT;
+	struct addrinfo *res = NULL;
 
 	int listenfd = startServer(iface, port, res);
 
@@ -77,8 +75,8 @@ int main(int argc, char *argv[])
 	while (1)
 	{
 		struct sockaddr_in clientaddr;
-		socklen_t          addrlen = sizeof(clientaddr);
-		int                client  = accept(listenfd, (struct sockaddr *)&clientaddr, &addrlen);
+		socklen_t addrlen = sizeof(clientaddr);
+		int client = accept(listenfd, (struct sockaddr *)&clientaddr, &addrlen);
 
 		if (client < 0)
 		{
@@ -146,7 +144,7 @@ int main(int argc, char *argv[])
 		//size_t response_len = generate_response_deprecated(&response, request_res, request_struct.path, request_struct.keys, request_struct.values, request_struct.fields_amount);
 
 		Response *response = response_generate(request_struct);
-                char *response_str=malloc(response->content_length + MAX_MESSAGE_SIZE);
+		char *response_str = malloc(response->content_length + MAX_MESSAGE_SIZE);
 		response_str = response_to_string(response);
 
 		puts("\n========================RESPONSE========================\n");
@@ -164,6 +162,7 @@ int main(int argc, char *argv[])
 			perror("Sended");
 		}
 
+		request_free(request_struct);
 		response_free(response);
 
 		close(client);
