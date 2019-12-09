@@ -483,25 +483,54 @@ void response_free(Response *response)
 
 Response *response_generate(Request *request)
 {
-    Response *response = malloc(sizeof(Response));
-    response->headers_amount = 0;
-    response->statuscode = request_result(request);
-    response_set_status_line(response, response->statuscode);
+	Response *response = malloc(sizeof(Response));
 
-    response_add_header_line(response, RESPONSESERVER);
+	response->headers_amount = 0;
+	response->statuscode     = request_result(request);
+	if (response->statuscode == 200)
+	{
+		if (is_regular_file(request->path))
+		{
+			struct stringlistnode *file = readfile(request->path)->first;
+			while (file != NULL)
+			{
+				response_add_content(response, file->string);
+				//printf("Dir: %s\n",node->string);
+				file = file->next;
+			}
 
-    char *date_header = response_make_date_header();
-    response_add_header_line(response, date_header);
-    free(date_header);
+			//readfile(,request->path);
+		}
+		else if (is_directory(request->path))
+		{
+			struct stringlistnode *node = listdir(request->path)->first;
+			while (node != NULL)
+			{
+				response_add_content(response, node->string);
+				//printf("Dir: %s\n",node->string);
+				node = node->next;
+			}
+		}
+		else
+		{
+			response->statuscode = 404;
+		}
+	}
+	response_set_status_line(response, response->statuscode);
 
-    response_add_header_line(response, RESPONSECLOSE);
+	response_add_header_line(response, RESPONSESERVER);
 
-    const char *data = HELLOWORLD;
+	char *date_header = response_make_date_header();
+	response_add_header_line(response, date_header);
+	free(date_header);
 
-    response->content_length = 0;
-    response_add_content(response, data);
+	response_add_header_line(response, RESPONSECLOSE);
 
-    return response;
+	//const char *data = HELLOWORLD;
+
+	response->content_length = 0;
+
+	return response;
 }
 
 char *response_make_date_header()
