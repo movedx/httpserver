@@ -20,6 +20,7 @@ struct stringlist
 	size_t length_concatenated;
 };
 typedef struct stringlist stringlist;
+typedef stringlist StringList;
 
 /* Initializes a stringlist with initialstring, if no initialstring is desired
  * NULL should be passed */

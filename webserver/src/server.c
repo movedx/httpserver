@@ -109,47 +109,49 @@ int main(int argc, char *argv[])
         printf("%s\n", request);
         puts("========================================================\n");
 
-        HttpRequest request_struct;
-        int request_res = 0;
+        Request *request_struct = malloc(sizeof(Request));
 
-        if (validate_request(request))
-        {
-            parse_request(&request_struct, request);
-            request_res = request_result(&request_struct);
-        }
-        else
-        {
-            request_res = 400;
-        }
+        parse_request(request_struct, request);
+
+        // int request_res = 0;
+
+        // if (validate_request(request))
+        // {
+        //     parse_request(request_struct, request);
+        //     request_res = request_result(request_struct);
+        // }
+        // else
+        // {
+        //     request_res = 400;
+        // }
 
         puts("\nMETHOD:");
-        printf("%s\n", request_struct.method);
+        printf("%s\n", request_struct->method);
 
         puts("\nPATH:");
-        printf("%s\n", request_struct.path);
+        printf("%s\n", request_struct->path);
 
         puts("\nCONTENT-LENGTH:");
-        printf("%zu\n", request_struct.content_length);
+        printf("%zu\n", request_struct->content_length);
 
         puts("\nKEYS:");
-        print_all_keys(&request_struct);
+        print_all_keys(request_struct);
 
         puts("\nVALUES:");
-        print_all_values(&request_struct);
+        print_all_values(request_struct);
 
-        char *response;
-        size_t response_len = generate_response(&response, request_res, request_struct.path, request_struct.keys, request_struct.values, request_struct.fields_amount);
+        //char *response;
+        //size_t response_len = generate_response_deprecated(&response, request_res, request_struct.path, request_struct.keys, request_struct.values, request_struct.fields_amount);
+
+        Response *response = response_generate(request_struct);
+
+        char *response_str = response_to_string(response);
 
         puts("\n========================RESPONSE========================\n");
-        printf("%s", response);
+        printf("%s", response_str);
         puts("========================================================\n");
 
-        if (response_len > MAX_MESSAGE_SIZE)
-        {
-            fprintf(stderr, "response too large to send");
-        }
-
-        ssize_t reply = send(client, response, response_len, 0);
+        ssize_t reply = send(client, response, strlen(response_str), 0);
 
         if (reply == -1)
         {
@@ -159,6 +161,8 @@ int main(int argc, char *argv[])
         {
             perror("Sended");
         }
+
+        response_free(response);
 
         close(client);
     }

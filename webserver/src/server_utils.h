@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include "file_utils.h"
 #include "string_utils.h"
+#include "stringlist.h"
 
 #define MAX_HEADER_FIELDS 30
 #define MAX_HEADER_FIELDKEY_SIZE 32
@@ -29,7 +30,7 @@
 
 #define RESPONSESERVER "Server: PK\r\n"
 #define RESPONSEDATE "Date: " /* Date value needs to be added at runtime */
-#define RESPONSECLOSE "Connection: close\r\n\r\n"
+#define RESPONSECLOSE "Connection: close\r\n"
 #define CONTENT_LENGTH "Content-Length: " /* Content-Length needs to be added at runtime */
 #define CONTENT_TYPE_TEXT_HTML "Content-Type: text/html\r\n"
 #define ROOTDIR "/tmp/www"
@@ -38,7 +39,7 @@
 
 extern const char *ALLOWED_METHODS;
 
-typedef struct HttpRequest
+typedef struct Request
 {
     char *method;
     char path[MAX_HEADER_FIELDVALUE_SIZE];
@@ -48,28 +49,63 @@ typedef struct HttpRequest
     size_t fields_amount;
     char *content;
     size_t content_length;
-} HttpRequest;
+} Request;
 
-bool contains_any_fields(const char *msg);
+typedef struct Response
+{
+    int statuscode;
+    char *status_line;
+    StringList *headers;
+    size_t content_length;
+    StringList *content;
+} Response;
 
-int parse_request(HttpRequest *request, char *msg);
+/*
+ * Request functions 
+ */
 
-size_t haskey(const char *key, HttpRequest *request);
+int parse_request(Request *request, char *msg);
 
-void print_all_keys(HttpRequest *request);
+size_t haskey(const char *key, Request *request);
 
-void print_all_values(HttpRequest *request);
+void print_all_keys(Request *request);
 
-const char *get_keys(HttpRequest *request);
+void print_all_values(Request *request);
 
-const char *get_values(HttpRequest *request);
+const char *get_keys(Request *request);
+
+const char *get_values(Request *request);
 
 const char *str_to_lower_case(char *str);
 
-int request_result(HttpRequest *request);
+int request_result(Request *request);
 
-char *get_value_by_key(HttpRequest *request, const char *key);
-
-size_t generate_response(char **responsebuffer, int statuscode, char *requestpath, char **fieldkeys, char **fieldvalues, size_t fields_len);
+char *get_value_by_key(Request *request, const char *key);
 
 bool validate_request(char *request);
+
+/*
+ * Response functions 
+ */
+
+void response_free(Response *response);
+
+// Returns the string, caller needs to free it
+char *response_to_string(Response *response);
+
+void response_add_header_key_value(Response *response, const char *key, const char *value);
+
+void response_add_header_line(Response *response, const char *header);
+
+char *response_get_header_value(Response *response, const char *key); // TODO: implement
+
+void response_add_content(Response *response, const char *data);
+
+void response_set_status_line(Response *response, int statuscode);
+
+Response *response_generate(Request *request); // TODO: implement
+
+// Returns the string, caller needs to free it
+char *response_make_date_header(void);
+
+size_t generate_response_deprecated(char **responsebuffer, int statuscode, char *requestpath, char **fieldkeys, char **fieldvalues, size_t fields_len);

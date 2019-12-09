@@ -3,7 +3,7 @@ CC	= gcc
 CFLAGS	= -std=c99 -D_POSIX_C_SOURCE=200112L -g -Wall -Wextra -Wpedantic -Wbad-function-cast \
           -Wconversion -Wwrite-strings -Wstrict-prototypes -Wimplicit-function-declaration -D_GNU_SOURCE
 SRC_PATH = ../webserver/src
-CFILES  = ${SRC_PATH}/server_utils.c ${SRC_PATH}/server.c ${SRC_PATH}/file_utils.c ${SRC_PATH}/string_utils.c
+CFILES  = ${SRC_PATH}/server_utils.c ${SRC_PATH}/server.c ${SRC_PATH}/file_utils.c ${SRC_PATH}/string_utils.c ${SRC_PATH}/stringlist.c
 # OFILES	= $(patsubst %.c, %.o, ${CFILES})
 MAIN = ../webserver/src/server.c
 EXE	= $(patsubst %.c, %  , ${MAIN})

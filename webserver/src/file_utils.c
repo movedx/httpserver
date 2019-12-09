@@ -34,7 +34,6 @@ ssize_t readfile(char *data, const char *path)
             break;
     }
 
-    // don't forget to terminate with the null character
     data[n] = '\0';
     return n;
 }

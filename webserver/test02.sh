@@ -36,6 +36,8 @@ t () {
   local EXPECTED=$2
   local DESC=$3
 
+  echo "Return: $RETURN" # TODO: delete this line befor submit assignment
+  echo "Expected: $EXPECTED" # TODO: delete this line befor submit assignment
   if [ "$RETURN" = "$EXPECTED" ]; then
     echo -e "\t${GREEN}✔ $DESC${NC}"
   else

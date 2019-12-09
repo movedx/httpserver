@@ -1,11 +1,13 @@
 #include "server_utils.h"
 
+bool _contains_any_fields(const char *msg);
+
 const char *ALLOWED_METHODS = "GET"
                               "POST"; //todo: add methods
 
-int parse_request(HttpRequest *request, char *msg)
+int parse_request(Request *request, char *msg)
 {
-    bool contains_fields = contains_any_fields(msg);
+    bool contains_fields = _contains_any_fields(msg);
     char *data = strstr(msg, "\r\n\r\n") + 4;
 
     request->method = strtok(msg, " ");
@@ -78,7 +80,7 @@ int parse_request(HttpRequest *request, char *msg)
     }
 }
 
-bool contains_any_fields(const char *msg)
+bool _contains_any_fields(const char *msg)
 {
     for (size_t i = 0; msg[i]; i++)
     {
@@ -90,7 +92,7 @@ bool contains_any_fields(const char *msg)
     return false;
 }
 
-size_t haskey(const char *key, HttpRequest *request)
+size_t haskey(const char *key, Request *request)
 {
     size_t i = 0;
     while (request->keys[i++])
@@ -101,7 +103,7 @@ size_t haskey(const char *key, HttpRequest *request)
     return false;
 }
 
-void print_all_keys(HttpRequest *request)
+void print_all_keys(Request *request)
 {
     for (size_t i = 0; i < request->fields_amount; i++)
     {
@@ -109,7 +111,7 @@ void print_all_keys(HttpRequest *request)
     }
 }
 
-void print_all_values(HttpRequest *request)
+void print_all_values(Request *request)
 {
     for (size_t i = 0; i < request->fields_amount; i++)
     {
@@ -126,7 +128,7 @@ const char *str_to_lower_case(char *str)
     return str;
 }
 
-const char *get_keys(HttpRequest *request)
+const char *get_keys(Request *request)
 {
     char *keys = malloc(MAX_MESSAGE_SIZE);
     size_t n = 0;
@@ -142,7 +144,7 @@ const char *get_keys(HttpRequest *request)
     return keys;
 }
 
-const char *get_values(HttpRequest *request)
+const char *get_values(Request *request)
 {
     char *values = malloc(MAX_MESSAGE_SIZE);
     size_t n = 0;
@@ -165,7 +167,7 @@ bool validate_request(char *request)
     return 1;
 }
 
-int request_result(HttpRequest *request)
+int request_result(Request *request)
 {
     if (strncasecmp(get_value_by_key(request, "Host"), "localhost", 9) != 0)
     {
@@ -186,7 +188,7 @@ int request_result(HttpRequest *request)
     return 200;
 }
 
-char *get_value_by_key(HttpRequest *request, const char *key)
+char *get_value_by_key(Request *request, const char *key)
 {
     for (size_t i = 0; i < request->fields_amount; i++)
     {
@@ -199,7 +201,23 @@ char *get_value_by_key(HttpRequest *request, const char *key)
     return NULL;
 }
 
-size_t generate_response(char **responsebuffer, int statuscode, char *requestpath, char **fieldkeys, char **fieldvalues, size_t fields_len)
+/* 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * Response functions
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ */
+
+size_t generate_response_deprecated(char **responsebuffer, int statuscode, char *requestpath, char **fieldkeys, char **fieldvalues, size_t fields_len)
 {
     /* size for response line (+'\0') except for reason phrase */
     char response[MAX_MESSAGE_SIZE];
@@ -312,4 +330,148 @@ size_t generate_response(char **responsebuffer, int statuscode, char *requestpat
     response[position] = '\0';
     *responsebuffer = response;
     return position > 0 ? (size_t)position : 0;
+}
+
+char *response_to_string(Response *response)
+{
+    StringList *rsl = stringlist_new(response->status_line);
+
+    stringlist_append(rsl, stringlist_string(response->headers));
+
+    stringlist_append(rsl, "\r\n");
+
+    stringlist_append(rsl, stringlist_string(response->content));
+
+    char *response_str = malloc(rsl->length_concatenated + 1);
+
+    strcpy(response_str, stringlist_string(rsl));
+
+    stringlist_free(rsl);
+
+    return response_str;
+}
+
+void response_set_status_line(Response *response, int statuscode)
+{
+
+    response->statuscode = statuscode;
+
+    char *line = malloc(strlen(RESPONSESTART) + 32);
+
+    strcpy(line, RESPONSESTART);
+
+    if (response->statuscode == 200)
+    {
+        strcat(line, RESPONSE200);
+    }
+    else if (response->statuscode == 301)
+    {
+        strcat(line, RESPONSE301);
+    }
+    else if (response->statuscode == 304)
+    {
+        strcat(line, RESPONSE304);
+    }
+    else if (response->statuscode == 400)
+    {
+        strcat(line, RESPONSE400);
+    }
+    else if (response->statuscode == 404)
+    {
+        strcat(line, RESPONSE404);
+    }
+    else if (response->statuscode == 501)
+    {
+        strcat(line, RESPONSE501);
+    }
+
+    response->status_line = malloc(strlen(line) + 1);
+    strcpy(response->status_line, line);
+}
+
+void response_add_content(Response *response, const char *data)
+{
+    if (response->content->length == 0)
+    {
+        response->content = stringlist_new(data);
+    }
+    else
+    {
+        stringlist_append(response->content, data);
+    }
+}
+
+void response_add_header_key_value(Response *response, const char *key, const char *value)
+{
+    char *header = malloc(strlen(key) + strlen(value) + 5);
+    strcpy(header, key);
+    strcat(header, ": ");
+    strcat(header, value);
+    strcat(header, "\r\n");
+
+    if (response->headers->length == 0)
+    {
+        response->headers = stringlist_new(header);
+    }
+    else
+    {
+        stringlist_append(response->headers, header);
+    }
+
+    free(header);
+}
+
+void response_add_header_line(Response *response, const char *header)
+{
+    if (response->headers->length == 0)
+    {
+        response->headers = stringlist_new(header);
+    }
+    else
+    {
+        stringlist_append(response->headers, header);
+    }
+}
+
+void response_free(Response *response)
+{
+    free(response->status_line);
+    stringlist_free(response->headers);
+    stringlist_free(response->content);
+    free(response);
+}
+
+Response *response_generate(Request *request)
+{
+    Response *response = malloc(sizeof(Response));
+    response->statuscode = request_result(request);
+    response_set_status_line(response, response->statuscode);
+
+    response_add_header_line(response, RESPONSESERVER);
+
+    char *date_header = response_make_date_header();
+    response_add_header_line(response, date_header);
+    free(date_header);
+
+    response_add_header_line(response, RESPONSECLOSE);
+
+    const char *data = HELLOWORLD;
+
+    response_add_content(response, data);
+
+    return response;
+}
+
+char *response_make_date_header()
+{
+    size_t timestring_len = 50;
+    char timestring[timestring_len];
+    time_t now = time(0);
+    struct tm tm = *gmtime(&now);
+    strftime(timestring, timestring_len, "%a, %d %b %Y %H:%M:%S %Z", &tm);
+
+    char *date_header = malloc(strlen(RESPONSEDATE) + strlen(timestring) + 3);
+
+    sprintf(date_header, "%s%s\r\n", RESPONSEDATE, timestring);
+    return date_header;
 }
