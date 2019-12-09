@@ -37,8 +37,9 @@ int parse_request(Request *request, char *msg)
         {
             request->keys[keyidx]     = malloc(strlen(key) + 1);
 			request->values[valueidx] = malloc(strlen(value) + 1);
-            if (!request->keys[keyidx] || !request->values[valueidx])
+            if (!request->keys[keyidx] || !request->values[valueidx]){
                 err(1, "key or value malloc");
+            }
 			strcpy(request->keys[keyidx], str_to_lower_case(key));
 			strcpy(request->values[valueidx], trimstr(value));
 			key   = strtok(NULL, ":");
