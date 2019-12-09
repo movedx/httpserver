@@ -4,10 +4,11 @@
 #include <stdio.h>
 #include <dirent.h>
 #include "server_utils.h"
+#include "stringlist.h"
 
-void listdir(const char *path);
+stringlist *listdir(const char *path);
 
-ssize_t readfile(char *data, const char *path);
+stringlist *readfile(const char *path);
 
 int is_regular_file(const char *path);
 
