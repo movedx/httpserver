@@ -35,14 +35,16 @@ int parse_request(Request *request, char *msg)
 
         while (key && value)
         {
-            request->keys[keyidx] = malloc(strlen(key));
-            request->values[valueidx] = malloc(strlen(value));
-
-            strcpy(request->keys[keyidx++], str_to_lower_case(key));
-            strcpy(request->values[valueidx++], trimstr(value));
-
-            key = strtok(NULL, ":");
-            value = strtok(NULL, "\n");
+            request->keys[keyidx]     = malloc(strlen(key) + 1);
+			request->values[valueidx] = malloc(strlen(value) + 1);
+            if (!request->keys[keyidx] || !request->values[valueidx])
+                err(1, "key or value malloc");
+			strcpy(request->keys[keyidx], str_to_lower_case(key));
+			strcpy(request->values[valueidx], trimstr(value));
+			key   = strtok(NULL, ":");
+			value = strtok(NULL, "\n");
+            keyidx++;
+            valueidx++;
         }
 
         request->fields_amount = keyidx;
