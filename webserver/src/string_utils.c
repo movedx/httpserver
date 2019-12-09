@@ -26,3 +26,12 @@ char *trimstr(char *str)
 
     return str;
 }
+
+const char *str_to_lower_case(char *str)
+{
+    for (size_t i = 0; str[i]; i++)
+    {
+        str[i] = (char)tolower(str[i]);
+    }
+    return str;
+}

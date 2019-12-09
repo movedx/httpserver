@@ -27,57 +27,25 @@ int parse_request(Request *request, char *msg)
 
     if (contains_fields)
     {
-        char *key = strtok(NULL, ":");
-        char *value = strtok(NULL, "\n");
-
-        size_t keyidx = 0;
-        size_t valueidx = 0;
+        char *key = strtok(NULL, " :\r\n");
+        char *value = strtok(NULL, "\r\n");
 
         while (key && value)
         {
-            request->keys[keyidx]     = malloc(strlen(key) + 1);
-			request->values[valueidx] = malloc(strlen(value) + 1);
-            if (!request->keys[keyidx] || !request->values[valueidx]){
-                err(1, "key or value malloc");
-            }
-			strcpy(request->keys[keyidx], str_to_lower_case(key));
-			strcpy(request->values[valueidx], trimstr(value));
-			key   = strtok(NULL, ":");
-			value = strtok(NULL, "\n");
-            keyidx++;
-            valueidx++;
-        }
+            request_add_header_key_value(request, key, value);
 
-        request->fields_amount = keyidx;
+            key = strtok(NULL, " :\r\n");
+            value = strtok(NULL, "\r\n");
+        }
 
         request->content_length = 0;
-        for (size_t i = 0; i < request->fields_amount; i++)
-        {
-            if (!strncmp(request->keys[i], "content-length", strlen("content-length")))
-                request->content_length = (size_t)atoi(request->values[i]);
-        }
 
-        if (request->content_length == 0)
-        {
-            return 0;
-        }
-
-        request->content = malloc(request->content_length);
-
-        if (request->content != NULL)
-        {
-            strcpy(request->content, data);
-            return 0;
-        }
-        else
-        {
-            perror("Memory allocation failure\n");
-            return -1;
-        }
+        request_add_content(request, data);
+        return 0;
     }
     else
     {
-        request->fields_amount = 0;
+        request->headers_amount = 0;
         request->content_length = 0;
         return 0;
     }
@@ -95,73 +63,91 @@ bool _contains_any_fields(const char *msg)
     return false;
 }
 
-size_t haskey(const char *key, Request *request)
+bool request_haskey(const char *key, Request *request)
 {
-    size_t i = 0;
-    while (request->keys[i++])
+    struct stringlistnode *current = request->headers->first;
+
+    while (current != request->headers->last)
     {
-        if (strncmp(request->keys[i], key, strlen(key)))
-            return i;
+        if (strncasecmp(current->string, key, strlen(key)) == 0)
+        {
+            return true;
+        }
+        current = current->next;
     }
+
+    if (strncasecmp(current->string, key, strlen(key)) == 0)
+    {
+        return true;
+    }
+
     return false;
 }
 
-void print_all_keys(Request *request)
+void request_print_all_keys(Request *request)
 {
-    for (size_t i = 0; i < request->fields_amount; i++)
+    char *headers_str = stringlist_string(request->headers);
+
+    char *key = strtok(headers_str, ": \r\n");
+
+    while (key != NULL)
     {
-        printf("%s\n", request->keys[i]);
+        printf("%s\n", key);
+        strtok(NULL, "\r\n");
+        key = strtok(NULL, " :\r\n");
     }
+
+    free(headers_str);
 }
 
-void print_all_values(Request *request)
+void request_print_all_values(Request *request)
 {
-    for (size_t i = 0; i < request->fields_amount; i++)
+    char *headers_str = stringlist_string(request->headers);
+
+    char *value = strtok(headers_str, ": ");
+    value = strtok(NULL, "\r\n");
+
+    while (value != NULL)
     {
-        printf("%s\n", request->values[i]);
+        printf("%s\n", trimstr(value));
+        strtok(NULL, ": \r\n");
+        value = strtok(NULL, "\r\n");
     }
+
+    free(headers_str);
 }
 
-const char *str_to_lower_case(char *str)
-{
-    for (size_t i = 0; str[i]; i++)
-    {
-        str[i] = (char)tolower(str[i]);
-    }
-    return str;
-}
+// const char *get_keys(Request *request)
+// {
+//     char *keys = malloc(MAX_MESSAGE_SIZE);
+//     size_t n = 0;
+//     for (size_t i = 0; i < request->headers_amount; i++)
+//     {
+//         for (size_t j = 0; j < strlen(request->keys[i]); j++)
+//         {
+//             keys[n++] = request->keys[i][j];
+//         }
+//         keys[n++] = '\n';
+//     }
+//     keys[n] = '\0';
+//     return keys;
+// }
 
-const char *get_keys(Request *request)
-{
-    char *keys = malloc(MAX_MESSAGE_SIZE);
-    size_t n = 0;
-    for (size_t i = 0; i < request->fields_amount; i++)
-    {
-        for (size_t j = 0; j < strlen(request->keys[i]); j++)
-        {
-            keys[n++] = request->keys[i][j];
-        }
-        keys[n++] = '\n';
-    }
-    keys[n] = '\0';
-    return keys;
-}
-
-const char *get_values(Request *request)
-{
-    char *values = malloc(MAX_MESSAGE_SIZE);
-    size_t n = 0;
-    for (size_t i = 0; i < request->fields_amount; i++)
-    {
-        for (size_t j = 0; j < strlen(request->values[i]); j++)
-        {
-            values[n++] = request->values[i][j];
-        }
-        values[n++] = '\n';
-    }
-    values[n] = '\0';
-    return values;
-}
+// const char *get_values(Request *request)
+// {
+//     char *values = malloc(MAX_MESSAGE_SIZE);
+//     size_t n = 0;
+//     for (size_t i = 0; i < request->headers_amount; i++)
+//     {
+//         for (size_t j = 0; j < strlen(request->values[i]); j++)
+//         {
+//             values[n++] = request->values[i][j];
+//         }
+//         values[n++] = '\n';
+//     }
+//     values[n] = '\0';
+//     return values;
+// }
 
 bool validate_request(char *request)
 {
@@ -172,7 +158,7 @@ bool validate_request(char *request)
 
 int request_result(Request *request)
 {
-    if (strncasecmp(get_value_by_key(request, "Host"), "localhost", 9) != 0)
+    if (strncasecmp(request_get_value_by_key(request, "Host"), "localhost", 9) != 0)
     {
         /* Note: HTTP 1.0 lacks Host field, so this breaks it, but that's OK for us */
         return 400;
@@ -191,17 +177,62 @@ int request_result(Request *request)
     return 200;
 }
 
-char *get_value_by_key(Request *request, const char *key)
+char *request_get_value_by_key(Request *request, const char *key)
 {
-    for (size_t i = 0; i < request->fields_amount; i++)
+    struct stringlistnode *current = request->headers->first;
+
+    while (current != request->headers->last)
     {
-        if (strcasecmp(request->keys[i], key) == 0)
+        if (strncasecmp(current->string, key, strlen(key)) == 0)
         {
-            return request->values[i];
+            return trimstr(strstr(current->string, ":"));
         }
+        current = current->next;
     }
+
+    if (strncasecmp(current->string, key, strlen(key)) == 0)
+    {
+        return trimstr(strstr(current->string, ":"));
+    }
+
     perror("Key doesn't exist.\n");
     return NULL;
+}
+
+void request_add_header_key_value(Request *request, const char *key, const char *value)
+{
+    char *header = malloc(strlen(key) + strlen(value) + 5);
+    strcpy(header, key);
+    strcat(header, ":");
+    strcat(header, value);
+    strcat(header, "\r\n");
+
+    if (request->headers_amount == 0)
+    {
+        request->headers = stringlist_new(header);
+        request->headers_amount++;
+    }
+    else
+    {
+        stringlist_append(request->headers, header);
+        request->headers_amount++;
+    }
+
+    free(header);
+}
+
+void request_add_content(Request *request, const char *data)
+{
+    if (request->content_length == 0)
+    {
+        request->content = stringlist_new(data);
+        request->content_length = strlen(data);
+    }
+    else
+    {
+        stringlist_append(request->content, data);
+        request->content_length += strlen(data);
+    }
 }
 
 /* 

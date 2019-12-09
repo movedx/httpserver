@@ -135,10 +135,10 @@ int main(int argc, char *argv[])
         printf("%zu\n", request_struct->content_length);
 
         puts("\nKEYS:");
-        print_all_keys(request_struct);
+        request_print_all_keys(request_struct);
 
         puts("\nVALUES:");
-        print_all_values(request_struct);
+        request_print_all_values(request_struct);
 
         //char *response;
         //size_t response_len = generate_response_deprecated(&response, request_res, request_struct.path, request_struct.keys, request_struct.values, request_struct.fields_amount);

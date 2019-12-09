@@ -19,6 +19,7 @@
 #define MAX_HEADER_FIELDKEY_SIZE 32
 #define MAX_HEADER_FIELDVALUE_SIZE 256
 #define MAX_MESSAGE_SIZE 4096
+#define MAX_PATH_SIZE 2048
 
 #define RESPONSESTART "HTTP/1.1 "
 #define RESPONSE400 "400 Bad Request\r\n"
@@ -35,19 +36,18 @@
 #define CONTENT_TYPE_TEXT_HTML "Content-Type: text/html\r\n"
 #define ROOTDIR "/tmp/www"
 
-#define HELLOWORLD "Hello World!"
+#define HELLOWORLD "Hello World!\n"
 
 extern const char *ALLOWED_METHODS;
 
 typedef struct Request
 {
     char *method;
-    char path[MAX_HEADER_FIELDVALUE_SIZE];
+    char path[MAX_PATH_SIZE];
     char *version;
-    char *keys[MAX_HEADER_FIELDS];
-    char *values[MAX_HEADER_FIELDS];
-    size_t fields_amount;
-    char *content;
+    StringList *headers;
+    size_t headers_amount;
+    StringList *content;
     size_t content_length;
 } Request;
 
@@ -61,29 +61,36 @@ typedef struct Response
     size_t headers_amount;
 } Response;
 
+// check if message is fully recieved and we can start parse request
+bool is_end_of_msg(const char *msg); // TODO: implement
+
 /*
  * Request functions 
  */
 
 int parse_request(Request *request, char *msg);
 
-size_t haskey(const char *key, Request *request);
+bool request_haskey(const char *key, Request *request);
 
-void print_all_keys(Request *request);
+void request_print_all_keys(Request *request);
 
-void print_all_values(Request *request);
+void request_print_all_values(Request *request);
 
-const char *get_keys(Request *request);
+// const char *get_keys(Request *request);
 
-const char *get_values(Request *request);
-
-const char *str_to_lower_case(char *str);
+// const char *get_values(Request *request);
 
 int request_result(Request *request);
 
-char *get_value_by_key(Request *request, const char *key);
+char *request_get_value_by_key(Request *request, const char *key);
 
 bool validate_request(char *request);
+
+void request_add_header_key_value(Request *request, const char *key, const char *value);
+
+void request_add_content(Request *request, const char *data);
+
+void request_free(Request *request); // TODO: implement
 
 /*
  * Response functions 
