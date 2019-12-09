@@ -11,7 +11,7 @@ TESTCASES=$(patsubst %, tests/%, ${EXE})
 
 .PHONY: all clean realclean test unittest beautify ${TESTCASES}
 
-server: $(OFILES)
+server: $(CFILES)
 	$(CC) $(CFLAGS) -o server $(CFILES)
 
 all: server unittest
