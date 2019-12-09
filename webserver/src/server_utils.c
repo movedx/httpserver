@@ -391,13 +391,15 @@ void response_set_status_line(Response *response, int statuscode)
 
 void response_add_content(Response *response, const char *data)
 {
-    if (response->content->length == 0)
+    if (response->content_length == 0)
     {
         response->content = stringlist_new(data);
+        response->content_length = strlen(data);
     }
     else
     {
         stringlist_append(response->content, data);
+        response->content_length += strlen(data);
     }
 }
 
@@ -409,13 +411,15 @@ void response_add_header_key_value(Response *response, const char *key, const ch
     strcat(header, value);
     strcat(header, "\r\n");
 
-    if (response->headers->length == 0)
+    if (response->headers_amount == 0)
     {
         response->headers = stringlist_new(header);
+        response->headers_amount++;
     }
     else
     {
         stringlist_append(response->headers, header);
+        response->headers_amount++;
     }
 
     free(header);
@@ -423,13 +427,15 @@ void response_add_header_key_value(Response *response, const char *key, const ch
 
 void response_add_header_line(Response *response, const char *header)
 {
-    if (response->headers->length == 0)
+    if (response->headers_amount == 0)
     {
         response->headers = stringlist_new(header);
+        response->headers_amount++;
     }
     else
     {
         stringlist_append(response->headers, header);
+        response->headers_amount++;
     }
 }
 
@@ -444,6 +450,7 @@ void response_free(Response *response)
 Response *response_generate(Request *request)
 {
     Response *response = malloc(sizeof(Response));
+    response->headers_amount = 0;
     response->statuscode = request_result(request);
     response_set_status_line(response, response->statuscode);
 
@@ -457,6 +464,7 @@ Response *response_generate(Request *request)
 
     const char *data = HELLOWORLD;
 
+    response->content_length = 0;
     response_add_content(response, data);
 
     return response;

@@ -58,6 +58,7 @@ typedef struct Response
     StringList *headers;
     size_t content_length;
     StringList *content;
+    size_t headers_amount;
 } Response;
 
 /*
