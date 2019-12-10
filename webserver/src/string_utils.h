@@ -8,3 +8,5 @@
 char *trimstr(char *str);
 
 const char *str_to_lower_case(char *str);
+
+char *absPath(char *path);
