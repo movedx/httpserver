@@ -1,7 +1,7 @@
 # See https://www.gnu.org/software/make/manual/html_node/ for more information
 CC	= gcc
 CFLAGS	= -std=c99 -D_POSIX_C_SOURCE=200112L -g -Wall -Wextra -Wpedantic -Wbad-function-cast \
-          -Wconversion -Wwrite-strings -Wstrict-prototypes -D_GNU_SOURCE
+          -Wconversion -Wwrite-strings -Wstrict-prototypes -D_GNU_SOURCE -lpthread
 CFILES  = server.c stringlist.c
 OFILES	= $(patsubst %.c, %.o, ${CFILES})
 EXE	= $(patsubst %.c, %  , ${CFILES})
