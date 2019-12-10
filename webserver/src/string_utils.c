@@ -1,4 +1,5 @@
 #include "string_utils.h"
+#include "server_utils.h"
 
 // Note: This function returns a pointer to a substring of the original string.
 // If the given string was allocated dynamically, the caller must not overwrite
@@ -34,4 +35,10 @@ const char *str_to_lower_case(char *str)
         str[i] = (char)tolower(str[i]);
     }
     return str;
+}
+
+char *absPath(char *path){
+        char *abs;
+        asprintf(&abs, "%s%s",ROOTDIR, path);
+        return abs;
 }
