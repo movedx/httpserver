@@ -318,6 +318,8 @@ void response_set_status_line(Response *response, int statuscode)
 
     response->status_line = malloc(strlen(line) + 1);
     strcpy(response->status_line, line);
+
+    free(line);
 }
 
 void response_add_content(Response *response, const char *data)
@@ -382,13 +384,16 @@ Response *response_generate(Request *request)
 {
     Response *response = malloc(sizeof(Response));
 
+    response->content_length = 0;
+    response_add_content(response, "");
+
     response->headers_amount = 0;
     response->statuscode = request_result(request);
     if (response->statuscode == 200)
     {
-        if (is_regular_file(request->path))
+        if (is_regular_file(request->path->first->string))
         {
-            struct stringlistnode *file = readfile(request->path)->first;
+            struct stringlistnode *file = readfile(request->path->first->string)->first;
             while (file != NULL)
             {
                 response_add_content(response, file->string);
@@ -398,9 +403,9 @@ Response *response_generate(Request *request)
 
             //readfile(,request->path);
         }
-        else if (is_directory(request->path))
+        else if (is_directory(request->path->first->string))
         {
-            struct stringlistnode *node = listdir(request->path)->first;
+            struct stringlistnode *node = listdir(request->path->first->string)->first;
             while (node != NULL)
             {
                 response_add_content(response, node->string);
@@ -424,8 +429,6 @@ Response *response_generate(Request *request)
     response_add_header_line(response, RESPONSECLOSE);
 
     //const char *data = HELLOWORLD;
-
-    response->content_length = 0;
 
     return response;
 }

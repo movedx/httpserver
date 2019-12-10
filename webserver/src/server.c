@@ -125,20 +125,20 @@ int main(int argc, char *argv[])
 		//     request_res = 400;
 		// }
 
-		/*	puts("\nMETHOD:");
-		 *      printf("%s\n", request_struct->method);
-		 *
-		 *      puts("\nPATH:");
-		 *      printf("%s\n", request_struct->path);
-		 *
-		 *      puts("\nCONTENT-LENGTH:");
-		 *      printf("%zu\n", request_struct->content_length);
-		 *
-		 *      puts("\nKEYS:");
-		 *      print_all_keys(request_struct);
-		 *
-		 *      puts("\nVALUES:");
-		 *      print_all_values(request_struct);*/
+		puts("\nMETHOD:");
+		printf("%s\n", request_struct->method);
+
+		puts("\nPATH:");
+		printf("%s\n", request_struct->path->first->string);
+
+		puts("\nCONTENT-LENGTH:");
+		printf("%zu\n", request_struct->content_length);
+
+		puts("\nKEYS:");
+		request_print_all_keys(request_struct);
+
+		puts("\nVALUES:");
+		request_print_all_values(request_struct);
 
 		//char *response;
 		//size_t response_len = generate_response_deprecated(&response, request_res, request_struct.path, request_struct.keys, request_struct.values, request_struct.fields_amount);
