@@ -71,18 +71,13 @@ bool request_haskey(const char *key, Request *request)
 {
     struct stringlistnode *current = request->headers->first;
 
-    while (current != request->headers->last)
+    while (current)
     {
         if (strncasecmp(current->string, key, strlen(key)) == 0)
         {
             return true;
         }
         current = current->next;
-    }
-
-    if (strncasecmp(current->string, key, strlen(key)) == 0)
-    {
-        return true;
     }
 
     return false;
@@ -162,7 +157,7 @@ bool validate_request(char *request)
 
 int request_result(Request *request)
 {
-    if (strstr(request_get_value_by_key(request, "Host"), "localhost")==NULL)
+    if (strstr(request_get_value_by_key(request, "Host"), "localhost") == NULL)
     {
         /* Note: HTTP 1.0 lacks Host field, so this breaks it, but that's OK for us */
         printf("ich");
@@ -188,18 +183,13 @@ char *request_get_value_by_key(Request *request, const char *key)
 {
     struct stringlistnode *current = request->headers->first;
 
-    while (current != request->headers->last)
+    while (current)
     {
         if (strncasecmp(current->string, key, strlen(key)) == 0)
         {
             return trimstr(strstr(current->string, ":"));
         }
         current = current->next;
-    }
-
-    if (strncasecmp(current->string, key, strlen(key)) == 0)
-    {
-        return trimstr(strstr(current->string, ":"));
     }
 
     perror("Key doesn't exist.\n");
@@ -396,12 +386,13 @@ Response *response_generate(Request *request)
     {
         if (is_regular_file(absPath(request->path->first->string)))
         {
-            struct stringlistnode *file = readfile(absPath(request->path->first->string))->first;
-            while (file != NULL)
+            char *file_bytes = NULL;
+            file_to_string(absPath(request->path->first->string), file_bytes);
+            if (file_bytes != NULL)
             {
-                response_add_content(response, file->string);
+                response_add_content(response, file_bytes);
                 //printf("Dir: %s\n",node->string);
-                file = file->next;
+                free(file_bytes);
             }
 
             //readfile(,request->path);
@@ -429,9 +420,9 @@ Response *response_generate(Request *request)
     response_add_header_line(response, date_header);
     free(date_header);
 
-    response_add_header_line(response, RESPONSECLOSE);
+    response_add_header_key_value(response, "Content-Length", size_t_to_string(response->content_length));
 
-    //const char *data = HELLOWORLD;
+    response_add_header_line(response, RESPONSECLOSE);
 
     return response;
 }

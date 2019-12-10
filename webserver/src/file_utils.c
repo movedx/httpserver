@@ -2,8 +2,8 @@
 
 stringlist *listdir(const char *path)
 {
-	DIR               *d;
-	struct dirent     *dir;
+	DIR *d;
+	struct dirent *dir;
 	struct stringlist *dirs = stringlist_new("<html><body>\n");
 
 	d = opendir(path);
@@ -22,17 +22,16 @@ stringlist *listdir(const char *path)
 	return dirs;
 }
 
-
 stringlist *readfile(const char *path)
 {
-	FILE       *file = fopen(path, "r");
+	FILE *file = fopen(path, "r");
 	stringlist *flist;
-	int        count = 0;
-	int        c;
+	int count = 0;
+	int c;
 
 	if (file == NULL)
 	{
-		return 0;             //could not open file
+		return 0; //could not open file
 	}
 	if (strstr(path, ".jpg") || strstr(path, ".png"))
 	{
@@ -54,7 +53,7 @@ stringlist *readfile(const char *path)
 				stringlist_append(flist, speicher);
 				free(speicher);
 				speicher = malloc(MAX_MESSAGE_SIZE);
-				count    = 0;
+				count = 0;
 			}
 			speicher[count] = (char)c;
 			count++;
@@ -62,7 +61,6 @@ stringlist *readfile(const char *path)
 	}
 	return flist;
 }
-
 
 int is_regular_file(const char *path)
 {
@@ -72,11 +70,36 @@ int is_regular_file(const char *path)
 	return S_ISREG(path_stat.st_mode);
 }
 
-
 int is_directory(const char *path)
 {
 	struct stat path_stat;
 
 	stat(path, &path_stat);
 	return S_ISDIR(path_stat.st_mode);
+}
+
+//caller must free buffer
+void file_to_string(const char *path, char *buffer)
+{
+	FILE *fp;
+	size_t lSize;
+
+	fp = fopen(path, "rb");
+	if (!fp)
+		perror(path), exit(1);
+
+	fseek(fp, 0L, SEEK_END);
+	lSize = (size_t)ftell(fp);
+	rewind(fp);
+
+	/* allocate memory for entire content */
+	buffer = calloc(1, lSize + 1);
+	if (!buffer)
+		fclose(fp), fputs("memory alloc fails", stderr), exit(1);
+
+	/* copy the file into the buffer */
+	if (1 != fread(buffer, lSize, 1, fp))
+		fclose(fp), free(buffer), fputs("entire read fails", stderr), exit(1);
+
+	fclose(fp);
 }
