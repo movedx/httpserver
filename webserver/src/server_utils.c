@@ -162,19 +162,22 @@ bool validate_request(char *request)
 
 int request_result(Request *request)
 {
-    if (strncasecmp(request_get_value_by_key(request, "Host"), "localhost", 9) != 0)
+    if (strstr(request_get_value_by_key(request, "Host"), "localhost")==NULL)
     {
         /* Note: HTTP 1.0 lacks Host field, so this breaks it, but that's OK for us */
+        printf("ich");
         return 400;
     }
 
     if (strcasecmp(request->method, "GET") != 0) // TODO: Add more methods later and use ALLOWED_METHODS
     {
+        printf("ich bins");
         return 501;
     }
 
     if (strcasecmp(request->method, "GET") != 0 || request->path->first->string[0] != '/')
     {
+        printf("ich bins tim");
         return 400;
     }
 
@@ -391,9 +394,9 @@ Response *response_generate(Request *request)
     response->statuscode = request_result(request);
     if (response->statuscode == 200)
     {
-        if (is_regular_file(request->path->first->string))
+        if (is_regular_file(absPath(request->path->first->string)))
         {
-            struct stringlistnode *file = readfile(request->path->first->string)->first;
+            struct stringlistnode *file = readfile(absPath(request->path->first->string))->first;
             while (file != NULL)
             {
                 response_add_content(response, file->string);
@@ -403,9 +406,9 @@ Response *response_generate(Request *request)
 
             //readfile(,request->path);
         }
-        else if (is_directory(request->path->first->string))
+        else if (is_directory(absPath(request->path->first->string)))
         {
-            struct stringlistnode *node = listdir(request->path->first->string)->first;
+            struct stringlistnode *node = listdir(absPath(request->path->first->string))->first;
             while (node != NULL)
             {
                 response_add_content(response, node->string);
