@@ -6,6 +6,15 @@ Die Abgabe ist der letzte Commit vor der Abgabe der master branch.
 Diese Woche implementieren wir Multithreading im Webserver und schreiben einen
 File Cache.
 
+Im folgenden finden Sie eine Übersicht über die Entwicklung des Webservers:
+
+1. Webserver liefert statische Antworten und einfache Headerverarbeitung :heavy_check_mark:
+2. Angefragte Dateien werden ausgeliefert und Ordnerstrukturen ausgegeben :heavy_check_mark:
+3. Speicherbegrenzungen werden aufgehoben :heavy_check_mark:
+4. **Mehrere Anfragen können parallel bearbeitet werden und Antworten werden zwischengespeichert**
+5. Webserver soll im Hintergrund laufen und möglichst wenige Berechtigungen haben
+6. Um bei Google ein gutes Ranking zu bekommen muss der Webserver via TLS erreichbar sein
+
 ## Cache
 Ihr Webserver soll mehrere Anfragen mithilfe von Threads gleichzeitig bearbeiten
 können. Es soll außerdem einen File Cache geben, so dass die letzten 10 Dateien
@@ -30,23 +39,24 @@ sleep nicht eintreten.
 ## Thread Limitierung
 Eine unbegrenzte Anzahl an Threads lassen sich bei einem ausgelasteten Server
 kaum verwalten, deshalb kann es sinnvoll sein die Anzahl Threads zu beschränken.
-Mit -tl X soll die Anzahl Threads auf X begrenzt werden.
+Mit dem Argument `-tl X` soll die Anzahl Threads auf X begrenzt werden.
 
 ## Threadpool
 Threads zu erstellen und beenden kostet Zeit, deshalb werden häufig Threadpools
 eingesetzt, statt für jede Verbindung einen neuen Thread zu erstellen.
-Wird Ihr Server mit -tp X aufgerufen soll er bereits beim Start X Threads
+Wird Ihr Server mit `-tp X` aufgerufen soll er bereits beim Start X Threads
 erstellen, die dann die Anfragen bearbeiten. Ausser diesen X Threads sollen keine
 weiteren Threads mehr erstellt werden.
 
 
-Sie können davon ausgehen, dass der Server nur mit '-tp THREADZAHL PORT' oder
-nur 'PORT' aufgerufen wird. Um die Reihenfolge der Argumente brauchen Sie sich
+Sie können davon ausgehen, dass der Server nur mit `-tp THREADZAHL PORT` oder
+nur `PORT` aufgerufen wird. Um die Reihenfolge der Argumente brauchen Sie sich
 also nicht zu kümmern.
+
 Mögliche Aufrufe:
-server -tp 200 8080
-server -tl 100
-server 8080
+- `./server -tp 200 8080`
+- `./server -tl 100`
+- `./server 8080`
 
 Um das Programm mit pthreads zu bauen, nutzen sie `-pthread` oder das bereitgestellte
 Makefile.
