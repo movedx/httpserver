@@ -15,6 +15,7 @@ Im folgenden finden Sie eine Übersicht über die Entwicklung des Webservers:
 3. **Speicherbegrenzungen werden aufgehoben**
 4. Mehrere Anfragen können parallel bearbeitet werden und Antworten werden zwischengespeichert
 5. Webserver soll im Hintergrund laufen und möglichst wenige Berechtigungen haben
+6. Um bei Google ein gutes Ranking zu bekommen muss der Webserver via TLS erreichbar sein
 
 ## Aufgaben
 
