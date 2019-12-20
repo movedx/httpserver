@@ -1,25 +1,18 @@
 #include "server_utils.h"
 
-bool _contains_any_fields(const char *msg);
+bool _contains_any_headers(const char *msg);
 
 const char *ALLOWED_METHODS = "GET"
                               "POST"; //todo: add methods
 
 int parse_request(Request *request, char *msg)
 {
-    bool contains_fields = _contains_any_fields(msg);
+    bool contains_fields = _contains_any_headers(msg);
     char *data = strstr(msg, "\r\n\r\n") + 4;
 
     request->method = strtok(msg, " ");
 
     // todo: check if method is in ALLOWED_METHODS.
-
-    // char *path = strtok(NULL, " ");
-    // char new_path[MAX_PATH_SIZE];
-    // new_path[0] = '\0';
-    // strcpy(new_path, ROOTDIR);
-    // strcat(new_path, path);
-    // strcpy(request->path, new_path);
 
     request->path = stringlist_new(strtok(NULL, " "));
 
@@ -55,10 +48,17 @@ int parse_request(Request *request, char *msg)
     }
 }
 
-bool _contains_any_fields(const char *msg)
+bool _contains_any_headers(const char *msg)
 {
     for (size_t i = 0; msg[i]; i++)
     {
+        if (msg[i] == '\n')
+        {
+            if (msg[i - 3] == '\r' && msg[i - 2] == '\n' && msg[i - 1] == '\r')
+            {
+                return false;
+            }
+        }
         if (msg[i] == ':')
         {
             return true;
