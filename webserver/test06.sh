@@ -105,7 +105,7 @@ kill $!
 
 echo
 echo Test threadpool
-./server -tp 20 8090 &
+./server -tp 200 8090 &
 testpid=$!
 t "$(ps huH -p $testpid | wc -l)" "201" "Server creates 200 threads at startup"
 curl $FLAGS -X GET localhost:8090/file-1.html -w "%{time_total}\n" > /dev/null &
