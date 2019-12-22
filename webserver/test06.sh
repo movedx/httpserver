@@ -101,7 +101,7 @@ curl $FLAGS -X GET localhost:8085/file-2.html &
 curl $FLAGS -X GET localhost:8085/file-3.html &
 curl $FLAGS -X GET localhost:8085/file-4.html &
 curl $FLAGS -X GET localhost:8085/file-5.html &
-t "$(ps huH -p $! | wc -l)" "4" "Server limits number of threads"
+t "$(ps huH -p $testpid | wc -l)" "4" "Server limits number of threads"
 kill $testpid
 
 echo
