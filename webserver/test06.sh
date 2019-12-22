@@ -95,13 +95,14 @@ t "$(curl $FLAGS -X GET $HOST/file-14.html -w "%{time_total}\n")" "$MAX_WAIT" "H
 echo
 echo Test thread limits
 ./server -tl 3 8085 &
-curl $FLAGS -X GET localhost:8085/file-1.html
-curl $FLAGS -X GET localhost:8085/file-2.html
-curl $FLAGS -X GET localhost:8085/file-3.html
-curl $FLAGS -X GET localhost:8085/file-4.html
-curl $FLAGS -X GET localhost:8085/file-5.html
+testpid=$!
+curl $FLAGS -X GET localhost:8085/file-1.html &
+curl $FLAGS -X GET localhost:8085/file-2.html &
+curl $FLAGS -X GET localhost:8085/file-3.html &
+curl $FLAGS -X GET localhost:8085/file-4.html &
+curl $FLAGS -X GET localhost:8085/file-5.html &
 t "$(ps huH -p $! | wc -l)" "4" "Server limits number of threads"
-kill $!
+kill $testpid
 
 echo
 echo Test threadpool
