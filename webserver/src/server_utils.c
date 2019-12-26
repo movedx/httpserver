@@ -157,22 +157,19 @@ bool validate_request(char *request)
 
 int request_result(Request *request)
 {
-    if (strstr(request_get_value_by_key(request, "Host"), "localhost") == NULL)
+    if (strncasecmp(request_get_value_by_key(request, "Host"), "localhost", strlen("localhost")) != 0)
     {
         /* Note: HTTP 1.0 lacks Host field, so this breaks it, but that's OK for us */
-        printf("ich");
         return 400;
     }
 
     if (strcasecmp(request->method, "GET") != 0) // TODO: Add more methods later and use ALLOWED_METHODS
     {
-        printf("ich bins");
         return 501;
     }
 
     if (strcasecmp(request->method, "GET") != 0 || request->path->first->string[0] != '/')
     {
-        printf("ich bins tim");
         return 400;
     }
 
@@ -187,7 +184,9 @@ char *request_get_value_by_key(Request *request, const char *key)
     {
         if (strncasecmp(current->string, key, strlen(key)) == 0)
         {
-            return trimstr(strstr(current->string, ":"));
+            char str[strlen(current->string) + 1];
+            strcpy(str, current->string);
+            return trimstr(strstr(str, ":") + 1);
         }
         current = current->next;
     }

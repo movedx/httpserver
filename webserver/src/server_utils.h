@@ -89,7 +89,7 @@ void request_add_header_key_value(Request *request, const char *key, const char 
 
 void request_add_content(Request *request, const char *data);
 
-void request_free(Request *request); // TODO: implement
+void request_free(Request *request);
 
 /*
  * Response functions 
@@ -110,9 +110,7 @@ void response_add_content(Response *response, const char *data);
 
 void response_set_status_line(Response *response, int statuscode);
 
-Response *response_generate(Request *request); // TODO: implement
+Response *response_generate(Request *request);
 
 // Returns the string, caller needs to free it
 char *response_make_date_header(void);
-
-// size_t generate_response_deprecated(char **responsebuffer, int statuscode, char *requestpath, char **fieldkeys, char **fieldvalues, size_t fields_len);
