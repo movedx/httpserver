@@ -75,10 +75,6 @@ void request_print_all_keys(Request *request);
 
 void request_print_all_values(Request *request);
 
-// const char *get_keys(Request *request);
-
-// const char *get_values(Request *request);
-
 int request_result(Request *request);
 
 char *request_get_value_by_key(Request *request, const char *key);

@@ -116,38 +116,6 @@ void request_print_all_values(Request *request)
     free(headers_str);
 }
 
-// const char *get_keys(Request *request)
-// {
-//     char *keys = malloc(MAX_MESSAGE_SIZE);
-//     size_t n = 0;
-//     for (size_t i = 0; i < request->headers_amount; i++)
-//     {
-//         for (size_t j = 0; j < strlen(request->keys[i]); j++)
-//         {
-//             keys[n++] = request->keys[i][j];
-//         }
-//         keys[n++] = '\n';
-//     }
-//     keys[n] = '\0';
-//     return keys;
-// }
-
-// const char *get_values(Request *request)
-// {
-//     char *values = malloc(MAX_MESSAGE_SIZE);
-//     size_t n = 0;
-//     for (size_t i = 0; i < request->headers_amount; i++)
-//     {
-//         for (size_t j = 0; j < strlen(request->values[i]); j++)
-//         {
-//             values[n++] = request->values[i][j];
-//         }
-//         values[n++] = '\n';
-//     }
-//     values[n] = '\0';
-//     return values;
-// }
-
 bool validate_request(char *request)
 {
     // TODO: implement validation.
