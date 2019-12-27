@@ -123,27 +123,6 @@ bool validate_request(char *request)
     return 1;
 }
 
-int request_result(Request *request)
-{
-    if (strncasecmp(request_get_value_by_key(request, "Host"), "localhost", strlen("localhost")) != 0)
-    {
-        /* Note: HTTP 1.0 lacks Host field, so this breaks it, but that's OK for us */
-        return 400;
-    }
-
-    if (strcasecmp(request->method, "GET") != 0) // TODO: Add more methods later and use ALLOWED_METHODS
-    {
-        return 501;
-    }
-
-    if (strcasecmp(request->method, "GET") != 0 || request->path->first->string[0] != '/')
-    {
-        return 400;
-    }
-
-    return 200;
-}
-
 char *request_get_value_by_key(Request *request, const char *key)
 {
     struct stringlistnode *current = request->headers->first;
@@ -222,6 +201,27 @@ void request_free(Request *request)
  * 
  * 
  */
+
+int response_status_code(Request *request)
+{
+    if (strncasecmp(request_get_value_by_key(request, "Host"), "localhost", strlen("localhost")) != 0)
+    {
+        /* Note: HTTP 1.0 lacks Host field, so this breaks it, but that's OK for us */
+        return 400;
+    }
+
+    if (strcasecmp(request->method, "GET") != 0) // TODO: Add more methods later and use ALLOWED_METHODS
+    {
+        return 501;
+    }
+
+    if (strcasecmp(request->method, "GET") != 0 || request->path->first->string[0] != '/')
+    {
+        return 400;
+    }
+
+    return 200;
+}
 
 char *response_to_string(Response *response)
 {
@@ -348,31 +348,34 @@ Response *response_generate(Request *request)
     response_add_content(response, "");
 
     response->headers_amount = 0;
-    response->statuscode = request_result(request);
+    response->statuscode = response_status_code(request);
+
+    char *abspath = absPath(request->path->first->string);
     if (response->statuscode == 200)
     {
-        if (is_regular_file(absPath(request->path->first->string)))
+        if (is_regular_file(abspath))
         {
             char *file_bytes = NULL;
-            file_to_string(absPath(request->path->first->string), file_bytes);
+            file_to_string(abspath, file_bytes);
             if (file_bytes != NULL)
             {
                 response_add_content(response, file_bytes);
-                //printf("Dir: %s\n",node->string);
                 free(file_bytes);
             }
-
-            //readfile(,request->path);
         }
-        else if (is_directory(absPath(request->path->first->string)))
+        else if (is_directory(abspath))
         {
-            struct stringlistnode *node = listdir(absPath(request->path->first->string))->first;
-            while (node != NULL)
+            StringList *strlist;
+            if (listdir(abspath, &strlist))
             {
-                response_add_content(response, node->string);
-                //printf("Dir: %s\n",node->string);
-                node = node->next;
+                response_add_content(response, stringlist_string(strlist));
             }
+            else
+            {
+                response_add_content(response, stringlist_string(strlist));
+            }
+
+            stringlist_free(strlist);
         }
         else
         {
