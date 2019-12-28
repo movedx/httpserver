@@ -1,10 +1,10 @@
 #include "stringlist.h"
 
-stringlist *stringlist_new(const char *initialstring)
+StringList *stringlist_new(const char *initialstring)
 {
     struct stringlistnode *node = stringlistnode_new(initialstring);
 
-    struct stringlist *list = malloc(sizeof(struct stringlist));
+    StringList *list = malloc(sizeof(StringList));
     assert(list != NULL);
 
     list->first = node;
@@ -15,7 +15,7 @@ stringlist *stringlist_new(const char *initialstring)
     return list;
 }
 
-stringlist *stringlist_append(stringlist *list, const char *string)
+StringList *stringlist_append(StringList *list, const char *string)
 {
     struct stringlistnode *node = stringlistnode_new(string);
     list->last->next = node;
@@ -25,7 +25,7 @@ stringlist *stringlist_append(stringlist *list, const char *string)
     return list;
 }
 
-char *stringlist_string(stringlist *list)
+char *stringlist_string(StringList *list)
 {
     if (list == NULL || list->first == NULL)
     {
@@ -52,12 +52,12 @@ char *stringlist_string(stringlist *list)
     return str;
 }
 
-size_t stringlist_length(stringlist *list)
+size_t stringlist_length(StringList *list)
 {
     return list->length_concatenated;
 }
 
-void stringlist_free(stringlist *list)
+void stringlist_free(StringList *list)
 {
     struct stringlistnode *current = list->first;
     while (current != list->last)

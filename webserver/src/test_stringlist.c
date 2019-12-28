@@ -6,7 +6,7 @@
 
 void testempty(void)
 {
-	stringlist *sl = stringlist_new(NULL);
+	StringList *sl = stringlist_new(NULL);
 	char *string = stringlist_string(sl);
 	assert(strlen(string) == 0);
 	free(string);
@@ -15,7 +15,7 @@ void testempty(void)
 
 void testempty2(void)
 {
-	stringlist *sl = stringlist_new("");
+	StringList *sl = stringlist_new("");
 	char *string = stringlist_string(sl);
 	assert(strlen(string) == 0);
 	free(string);
@@ -24,7 +24,7 @@ void testempty2(void)
 
 void testempty3(void)
 {
-	stringlist *sl = stringlist_new("");
+	StringList *sl = stringlist_new("");
 	char *string = stringlist_string(sl);
 	assert(strcmp(string, "") == 0);
 	free(string);
@@ -33,7 +33,7 @@ void testempty3(void)
 
 void testappend(void)
 {
-	stringlist *sl = stringlist_new("abc");
+	StringList *sl = stringlist_new("abc");
 	stringlist_append(sl, "defg");
 	stringlist_append(sl, "hij");
 	stringlist_append(sl, "klmnopqrst");
@@ -46,7 +46,7 @@ void testappend(void)
 
 void testappend2(void)
 {
-	stringlist *sl = stringlist_new("abc");
+	StringList *sl = stringlist_new("abc");
 	stringlist_append(sl, "defg");
 	stringlist_append(sl, "hij");
 	stringlist_append(sl, "klmnopqrstu");
@@ -59,7 +59,7 @@ void testappend2(void)
 
 void testappendnull(void)
 {
-	stringlist *sl = stringlist_new("abc");
+	StringList *sl = stringlist_new("abc");
 	stringlist_append(sl, NULL);
 	stringlist_append(sl, "def");
 	char *string = stringlist_string(sl);
@@ -70,7 +70,7 @@ void testappendnull(void)
 
 void testappendempty(void)
 {
-	stringlist *sl = stringlist_new("abc");
+	StringList *sl = stringlist_new("abc");
 	stringlist_append(sl, "");
 	stringlist_append(sl, "def");
 	char *string = stringlist_string(sl);
@@ -81,7 +81,7 @@ void testappendempty(void)
 
 void testlength(void)
 {
-	stringlist *sl = stringlist_new("abc");
+	StringList *sl = stringlist_new("abc");
 	stringlist_append(sl, "defg");
 	stringlist_append(sl, "hij");
 	stringlist_append(sl, "klmnopqrst");

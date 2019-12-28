@@ -15,7 +15,7 @@
 // or content of index.html (if exists)
 int listdir(const char *path, StringList **dirs);
 
-stringlist *readfile(const char *path);
+StringList *readfile(const char *path);
 
 int is_regular_file(const char *path);
 

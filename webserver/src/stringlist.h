@@ -12,27 +12,25 @@ struct stringlistnode
 	size_t stringlength;
 	struct stringlistnode *next;
 };
-struct stringlist
+typedef struct StringList
 {
 	struct stringlistnode *first;
 	struct stringlistnode *last;
 	size_t length;
 	size_t length_concatenated;
-};
-typedef struct stringlist stringlist;
-typedef stringlist StringList;
+} StringList;
 
 /* Initializes a stringlist with initialstring, if no initialstring is desired
  * NULL should be passed */
-stringlist *stringlist_new(const char *initialstring);
+StringList *stringlist_new(const char *initialstring);
 /* Appends a duplicate of the string to the list. Can be NULL or empty */
-stringlist *stringlist_append(stringlist *list, const char *string);
+StringList *stringlist_append(StringList *list, const char *string);
 /* Returns the entire string, caller needs to free it */
-char *stringlist_string(stringlist *list);
+char *stringlist_string(StringList *list);
 /* Returns the length of the entire string without any NULL-bytes*/
-size_t stringlist_length(stringlist *list);
+size_t stringlist_length(StringList *list);
 /* Frees all memory associated for the stringlist */
-void stringlist_free(stringlist *list);
+void stringlist_free(StringList *list);
 
 struct stringlistnode *stringlistnode_new(const char *initialstring);
 

@@ -29,11 +29,11 @@ int listdir(const char *path, StringList **dirs)
 	return 0;
 }
 
-stringlist *readfile(const char *path)
+StringList *readfile(const char *path)
 {
 	const size_t BUFF_SIZE = 1024;
 	FILE *file = fopen(path, "r");
-	stringlist *flist;
+	StringList *flist;
 	size_t count = 0;
 	int c;
 
