@@ -22,3 +22,5 @@ int is_regular_file(const char *path);
 int is_directory(const char *path);
 
 void file_to_string(const char *path, char *buffer);
+
+int is_path_exists(const char *path);

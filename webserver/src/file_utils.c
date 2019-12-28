@@ -114,3 +114,10 @@ void file_to_string(const char *path, char *buffer)
 
 	fclose(fp);
 }
+
+int is_path_exists(const char *path)
+{
+	struct stat path_stat;
+
+	return stat(path, &path_stat) == 0 && (S_ISDIR(path_stat.st_mode) || S_ISREG(path_stat.st_mode));
+}

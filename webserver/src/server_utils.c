@@ -220,6 +220,16 @@ int response_status_code(Request *request)
         return 400;
     }
 
+    if (!is_path_exists(absPath(request->path->first->string)))
+    {
+        return 404;
+    }
+
+    if (strstr(request->path->first->string, "/.."))
+    {
+        return 404;
+    }
+
     return 200;
 }
 

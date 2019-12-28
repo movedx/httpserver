@@ -131,6 +131,9 @@ int main(int argc, char *argv[])
 		puts("\nPATH:");
 		printf("%s\n", request_struct->path->first->string);
 
+		puts("\nABSOLUTE PATH:");
+		printf("%s\n", absPath(request_struct->path->first->string));
+
 		puts("\nCONTENT-LENGTH:");
 		printf("%zu\n", request_struct->content_length);
 
