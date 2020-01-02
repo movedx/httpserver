@@ -33,6 +33,8 @@
 #define RESPONSECLOSE "Connection: close\r\n"
 #define CONTENT_LENGTH "Content-Length: " /* Content-Length needs to be added at runtime */
 #define CONTENT_TYPE_TEXT_HTML "Content-Type: text/html\r\n"
+#define CONTENT_TYPE_APPLICATION_OCTETSTREAM "Content-Type: application/octet-stream\r\n"
+#define CONTENT_TYPE_IMAGE_JPEG "Content-Type: image/jpeg\r\n"
 #define ROOTDIR "/tmp/www"
 
 #define HELLOWORLD "Hello World!\n"
@@ -109,3 +111,5 @@ Response *response_generate(Request *request);
 
 // Returns the string, caller needs to free it
 char *response_make_date_header(void);
+
+void response_set_content_type(Response *response, const char *path);

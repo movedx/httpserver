@@ -81,32 +81,6 @@ int is_directory(const char *path)
 	return S_ISDIR(path_stat.st_mode);
 }
 
-//caller must free buffer
-void file_to_string(const char *path, char *buffer)
-{
-	FILE *fp;
-	size_t lSize;
-
-	fp = fopen(path, "rb");
-	if (!fp)
-		perror(path), exit(1);
-
-	fseek(fp, 0L, SEEK_END);
-	lSize = (size_t)ftell(fp);
-	rewind(fp);
-
-	/* allocate memory for entire content */
-	buffer = calloc(1, lSize + 1);
-	if (!buffer)
-		fclose(fp), fputs("memory alloc fails", stderr), exit(1);
-
-	/* copy the file into the buffer */
-	if (1 != fread(buffer, lSize, 1, fp))
-		fclose(fp), free(buffer), fputs("entire read fails", stderr), exit(1);
-
-	fclose(fp);
-}
-
 int is_path_exists(const char *path)
 {
 	struct stat path_stat;
@@ -119,4 +93,12 @@ const char *absPath(char *path)
 	char *abs;
 	asprintf(&abs, "%s%s", ROOTDIR, path);
 	return abs;
+}
+
+const char *get_filename_ext(const char *filename)
+{
+	const char *dot = strrchr(filename, '.');
+	if (!dot || dot == filename)
+		return "";
+	return dot + 1;
 }

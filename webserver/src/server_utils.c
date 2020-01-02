@@ -365,6 +365,8 @@ Response *response_generate(Request *request)
             }
             response_add_content(response, file_bytes, (size_t)file_size);
             free(file_bytes);
+
+            response_set_content_type(response, abspath);
         }
         else if (is_directory(abspath))
         {
@@ -372,6 +374,7 @@ Response *response_generate(Request *request)
             listdir(abspath, &strlist);
             response_add_content(response, strlist, strlen(strlist));
             free(strlist);
+            response_set_content_type(response, "42.html");
         }
         else
         {
@@ -405,4 +408,25 @@ char *response_make_date_header()
 
     sprintf(date_header, "%s%s\r\n", RESPONSEDATE, timestring);
     return date_header;
+}
+
+void response_set_content_type(Response *response, const char *path)
+{
+    const char *extention = get_filename_ext(path);
+
+    if (strcasecmp(extention, "jpg") == 0)
+    {
+        response_add_header_line(response, CONTENT_TYPE_IMAGE_JPEG);
+        return;
+    }
+    if (strcasecmp(extention, "html") == 0)
+    {
+        response_add_header_line(response, CONTENT_TYPE_TEXT_HTML);
+        return;
+    }
+    else
+    {
+        response_add_header_line(response, CONTENT_TYPE_APPLICATION_OCTETSTREAM);
+        return;
+    }
 }
