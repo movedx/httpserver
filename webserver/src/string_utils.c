@@ -37,13 +37,6 @@ const char *str_to_lower_case(char *str)
     return str;
 }
 
-char *absPath(char *path)
-{
-    char *abs;
-    asprintf(&abs, "%s%s", ROOTDIR, path);
-    return abs;
-}
-
 char *size_t_to_string(size_t num)
 {
     char *str_num;

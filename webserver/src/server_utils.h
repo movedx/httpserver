@@ -46,7 +46,7 @@ typedef struct Request
     char *version;
     StringList *headers;
     size_t headers_amount;
-    StringList *content;
+    StringList *content; // TODO: use char* because content is binary (strlen() used in StringList will not work)
     size_t content_length;
 } Request;
 
@@ -56,7 +56,7 @@ typedef struct Response
     char *status_line;
     StringList *headers;
     size_t content_length;
-    StringList *content;
+    char *content;
     size_t headers_amount;
 } Response;
 
@@ -93,8 +93,7 @@ void request_free(Request *request);
 
 void response_free(Response *response);
 
-// Returns the string, caller needs to free it
-char *response_to_string(Response *response);
+size_t response_to_string(Response *response, char **resp_str);
 
 void response_add_header_key_value(Response *response, const char *key, const char *value);
 
@@ -102,7 +101,7 @@ void response_add_header_line(Response *response, const char *header);
 
 char *response_get_header_value(Response *response, const char *key); // TODO: implement
 
-void response_add_content(Response *response, const char *data);
+void response_add_content(Response *response, char *data, size_t size);
 
 void response_set_status_line(Response *response, int statuscode);
 

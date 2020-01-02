@@ -143,18 +143,15 @@ int main(int argc, char *argv[])
 		puts("\nVALUES:");
 		request_print_all_values(request_struct);
 
-		//char *response;
-		//size_t response_len = generate_response_deprecated(&response, request_res, request_struct.path, request_struct.keys, request_struct.values, request_struct.fields_amount);
-
 		Response *response = response_generate(request_struct);
-		char *response_str = malloc(response->content_length + MAX_MESSAGE_SIZE);
-		response_str = response_to_string(response);
+		char *response_str = NULL;
+		size_t resp_str_len = response_to_string(response, &response_str);
 
 		puts("\n========================RESPONSE========================\n");
-		printf("%s", response_str);
-		puts("========================================================\n");
+		fwrite(response_str, 1, resp_str_len, stdout);
+		puts("\n=======================================================\n");
 
-		ssize_t reply = send(client, response_str, strlen(response_str), 0);
+		ssize_t reply = send(client, response_str, resp_str_len, 0);
 
 		if (reply == -1)
 		{
@@ -167,6 +164,7 @@ int main(int argc, char *argv[])
 
 		request_free(request_struct);
 		response_free(response);
+		free(response_str);
 
 		close(client);
 	}

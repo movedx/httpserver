@@ -6,16 +6,13 @@
 #include "server_utils.h"
 #include "stringlist.h"
 
-// return value:
-// - 1 if index.html exists
-// - 0 if not.
-// parameters:
-// - const char *path: path
-// - StringList *dirs: pointer to StringList where the directory structure converted to html will be stored
-// or content of index.html (if exists)
-int listdir(const char *path, StringList **dirs);
+// returns
+// 1 if index.html exists
+// 0 if index.html not found.
+int listdir(const char *path, char **data);
 
-StringList *readfile(const char *path);
+// returns readed length in bytes or -1
+ssize_t readfile(const char *path, char **buffer);
 
 int is_regular_file(const char *path);
 
@@ -24,3 +21,5 @@ int is_directory(const char *path);
 void file_to_string(const char *path, char *buffer);
 
 int is_path_exists(const char *path);
+
+const char *absPath(char *path);

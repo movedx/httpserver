@@ -1,76 +1,68 @@
 #include "file_utils.h"
 
-int listdir(const char *path, StringList **dirs)
+int listdir(const char *path, char **buffer)
 {
 	DIR *d;
 	struct dirent *dir;
-	*dirs = stringlist_new("<html><body>\n");
+	*buffer = malloc(strlen("<html><body>\n") + 1);
+	strcpy(*buffer, "<html><body>\n");
+	(*buffer)[strlen("<html><body>\n")] = '\0';
 
 	d = opendir(path);
 	if (d)
 	{
-		//puts("\nLISTING DIRECTORY:");
 		while ((dir = readdir(d)) != NULL)
 		{
 			if (strcmp(dir->d_name, "index.html") == 0)
 			{
-				stringlist_free(*dirs);
+				free(*buffer);
 				char path_to_indexhtml[strlen(path) + strlen("index.html") + 1];
-				*dirs = readfile(strcat(strcpy(path_to_indexhtml, path), "index.html"));
+				readfile(strcat(strcpy(path_to_indexhtml, path), "index.html"), &*buffer);
 				return 1;
 			}
 			char *link;
 			asprintf(&link, "<a ref=localhost:8080%s%s> %s</a>\n", path, dir->d_name, dir->d_name);
-			stringlist_append(*dirs, link);
+			*buffer = realloc(*buffer, strlen(*buffer) + strlen(link) + 1);
+			strcat(*buffer, link);
 		}
-		stringlist_append(*dirs, "</body></html>");
+		*buffer = realloc(*buffer, strlen(*buffer) + strlen("</body></html>") + 1);
+		strcat(*buffer, "</body></html>");
 		closedir(d);
 	}
 	return 0;
 }
 
-StringList *readfile(const char *path)
+ssize_t readfile(const char *path, char **buffer)
 {
-	const size_t BUFF_SIZE = 1024;
-	FILE *file = fopen(path, "r");
-	StringList *flist;
-	size_t count = 0;
-	int c;
+	FILE *fp = fopen(path, "rb");
 
-	if (file == NULL)
+	if (!fp)
 	{
-		return 0; //could not open file
+		perror("fopen");
+		return -1;
 	}
-	// if (strstr(path, ".jpg") || strstr(path, ".png")) // TODO: fix later (file.jpg.html) and move this block from this function
-	// {
-	// 	flist = stringlist_new("<html><body>");
-	// 	char *flink;
-	// 	asprintf(&flink, "<img src=\"%s\" alt=\"%s\" >", path, path);
-	// 	stringlist_append(flist, flink);
-	// 	stringlist_append(flist, "</body></html>");
-	// }
-	else
+
+	fseek(fp, 0, SEEK_END);
+	size_t flen = (size_t)ftell(fp);
+	rewind(fp);
+
+	*buffer = malloc(flen);
+
+	if (!*buffer)
 	{
-		flist = stringlist_new("");
-		char *speicher = malloc(BUFF_SIZE);
-
-		while ((c = fgetc(file)) != EOF)
-		{
-			if (count >= BUFF_SIZE)
-			{
-				stringlist_append(flist, speicher);
-				free(speicher);
-				speicher = malloc(BUFF_SIZE);
-				count = 0;
-			}
-			speicher[count] = (char)c;
-			count++;
-		}
-
-		stringlist_append(flist, speicher);
-		free(speicher);
+		perror("malloc");
+		return -1;
 	}
-	return flist;
+
+	if (fread(*buffer, 1, flen, fp) != flen)
+	{
+		perror("fread");
+		return -1;
+	}
+
+	fclose(fp);
+
+	return (int)flen;
 }
 
 int is_regular_file(const char *path)
@@ -120,4 +112,11 @@ int is_path_exists(const char *path)
 	struct stat path_stat;
 
 	return stat(path, &path_stat) == 0 && (S_ISDIR(path_stat.st_mode) || S_ISREG(path_stat.st_mode));
+}
+
+const char *absPath(char *path)
+{
+	char *abs;
+	asprintf(&abs, "%s%s", ROOTDIR, path);
+	return abs;
 }

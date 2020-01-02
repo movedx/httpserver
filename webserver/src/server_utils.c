@@ -233,23 +233,21 @@ int response_status_code(Request *request)
     return 200;
 }
 
-char *response_to_string(Response *response)
+size_t response_to_string(Response *response, char **resp_str)
 {
-    StringList *rsl = stringlist_new(response->status_line);
+    size_t resp_size = strlen(response->status_line) + response->headers->length_concatenated + response->content_length + 3;
+    char *res = malloc(resp_size);
+    size_t offset = 0;
 
-    stringlist_append(rsl, stringlist_string(response->headers));
-
-    stringlist_append(rsl, "\r\n");
-
-    stringlist_append(rsl, stringlist_string(response->content));
-
-    char *response_str = malloc(rsl->length_concatenated + 1);
-
-    strcpy(response_str, stringlist_string(rsl));
-
-    stringlist_free(rsl);
-
-    return response_str;
+    memcpy(res, response->status_line, strlen(response->status_line));
+    offset += strlen(response->status_line);
+    memcpy(res + offset, stringlist_string(response->headers), response->headers->length_concatenated);
+    offset += response->headers->length_concatenated;
+    memcpy(res + offset, "\r\n", 2);
+    offset += 2;
+    memcpy(res + offset, response->content, response->content_length);
+    *resp_str = res;
+    return resp_size;
 }
 
 void response_set_status_line(Response *response, int statuscode)
@@ -292,18 +290,12 @@ void response_set_status_line(Response *response, int statuscode)
     free(line);
 }
 
-void response_add_content(Response *response, const char *data)
+void response_add_content(Response *response, char *data, size_t size)
 {
-    if (response->content_length == 0)
-    {
-        response->content = stringlist_new(data);
-        response->content_length = strlen(data);
-    }
-    else
-    {
-        stringlist_append(response->content, data);
-        response->content_length += strlen(data);
-    }
+    size_t offset = response->content_length;
+    response->content = realloc(response->content, offset + size);
+    memcpy((response->content) + offset, data, size);
+    response->content_length = offset + size;
 }
 
 void response_add_header_key_value(Response *response, const char *key, const char *value)
@@ -346,7 +338,7 @@ void response_free(Response *response)
 {
     free(response->status_line);
     stringlist_free(response->headers);
-    stringlist_free(response->content);
+    free(response->content);
     free(response);
 }
 
@@ -354,38 +346,32 @@ Response *response_generate(Request *request)
 {
     Response *response = malloc(sizeof(Response));
 
+    response->content = malloc(0);
     response->content_length = 0;
-    response_add_content(response, "");
 
     response->headers_amount = 0;
     response->statuscode = response_status_code(request);
 
-    char *abspath = absPath(request->path->first->string);
+    const char *abspath = absPath(request->path->first->string);
     if (response->statuscode == 200)
     {
         if (is_regular_file(abspath))
         {
             char *file_bytes = NULL;
-            file_to_string(abspath, file_bytes);
-            if (file_bytes != NULL)
+            ssize_t file_size = readfile(abspath, &file_bytes);
+            if (file_size < 0)
             {
-                response_add_content(response, file_bytes);
-                free(file_bytes);
+                exit(1);
             }
+            response_add_content(response, file_bytes, (size_t)file_size);
+            free(file_bytes);
         }
         else if (is_directory(abspath))
         {
-            StringList *strlist;
-            if (listdir(abspath, &strlist))
-            {
-                response_add_content(response, stringlist_string(strlist));
-            }
-            else
-            {
-                response_add_content(response, stringlist_string(strlist));
-            }
-
-            stringlist_free(strlist);
+            char *strlist = NULL;
+            listdir(abspath, &strlist);
+            response_add_content(response, strlist, strlen(strlist));
+            free(strlist);
         }
         else
         {
