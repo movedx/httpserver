@@ -8,11 +8,13 @@
 #include <errno.h>
 #include <unistd.h>
 #include "server_utils.h"
+#include <pthread.h>
 
 #define DEFAULT_HOST "localhost"
 #define DEFAULT_PORT "8080"
 #define LISTENQUEUE 256 /* This server can only process one client simultaneously * \ \
 						 * How many connections do we want to queue? */
+#define MAX_THREADS 10
 
 int startServer(const char *iface, const char *port, struct addrinfo *res)
 {
@@ -60,6 +62,8 @@ void closeServer(struct addrinfo *res)
 	freeaddrinfo(res);
 }
 
+void *socketThread(void *arg);
+
 int main(int argc, char *argv[])
 {
 	const char *iface = NULL;
@@ -68,9 +72,8 @@ int main(int argc, char *argv[])
 
 	int listenfd = startServer(iface, port, res);
 
-	char request[MAX_MESSAGE_SIZE];
-
-	unsigned int request_num = 0;
+	pthread_t tid[MAX_THREADS];
+	int i = 0;
 
 	while (1)
 	{
@@ -83,93 +86,112 @@ int main(int argc, char *argv[])
 			perror("accept error");
 		}
 
-		ssize_t result = recv(client, request, MAX_MESSAGE_SIZE, 0);
-
-		if (result > 0)
+		if (pthread_create(&tid[i], NULL, socketThread, &client) != 0)
 		{
-			request[result] = '\0';
-			request_num++;
+			printf("Failed to create thread\n");
 		}
 
-		if (result == 0)
+		if (i >= MAX_THREADS)
 		{
-			printf("Connection closed\n");
-			break;
+			i = 0;
+			while (i < MAX_THREADS)
+			{
+				pthread_join(tid[i++], NULL);
+			}
+			i = 0;
 		}
-
-		if (result < 0)
-		{
-			perror("recv failed");
-			break;
-		}
-
-		// shutdown(client, SHUT_RD);
-
-		printf("\n=========================REQUEST %u=====================\n", request_num);
-		printf("%s\n", request);
-		puts("\n========================================================\n");
-
-		Request *request_struct = malloc(sizeof(Request));
-
-		parse_request(request_struct, request);
-
-		// int request_res = 0;
-
-		// if (validate_request(request))
-		// {
-		//     parse_request(request_struct, request);
-		//     request_res = request_result(request_struct);
-		// }
-		// else
-		// {
-		//     request_res = 400;
-		// }
-
-		puts("\nMETHOD:");
-		printf("%s\n", request_struct->method);
-
-		puts("\nPATH:");
-		printf("%s\n", request_struct->path->first->string);
-
-		puts("\nABSOLUTE PATH:");
-		printf("%s\n", absPath(request_struct->path->first->string));
-
-		puts("\nCONTENT-LENGTH:");
-		printf("%zu\n", request_struct->content_length);
-
-		puts("\nKEYS:");
-		request_print_all_keys(request_struct);
-
-		puts("\nVALUES:");
-		request_print_all_values(request_struct);
-
-		Response *response = response_generate(request_struct);
-		char *response_str = NULL;
-		size_t resp_str_len = response_to_string(response, &response_str);
-
-		puts("\n========================RESPONSE========================\n");
-		fwrite(response_str, 1, resp_str_len, stdout);
-		puts("\n=======================================================\n");
-
-		ssize_t reply = send(client, response_str, resp_str_len, 0);
-
-		if (reply == -1)
-		{
-			perror("Send failed");
-		}
-		else
-		{
-			perror("Sended");
-		}
-
-		request_free(request_struct);
-		response_free(response);
-		free(response_str);
-
-		close(client);
 	}
 
 	closeServer(res);
 
 	return 0;
+}
+
+void *socketThread(void *arg)
+{
+	char request[MAX_MESSAGE_SIZE];
+
+	int client = *((int *)arg);
+	ssize_t result = recv(client, request, MAX_MESSAGE_SIZE, 0);
+
+	if (result > 0)
+	{
+		request[result] = '\0';
+	}
+
+	if (result == 0)
+	{
+		printf("Connection closed\n");
+	}
+
+	if (result < 0)
+	{
+		perror("recv failed");
+	}
+
+	// shutdown(client, SHUT_RD);
+
+	printf("\n=========================REQUEST=========================\n");
+	printf("%s\n", request);
+	puts("\n========================================================\n");
+
+	Request *request_struct = malloc(sizeof(Request));
+
+	parse_request(request_struct, request);
+
+	// int request_res = 0;
+
+	// if (validate_request(request))
+	// {
+	//     parse_request(request_struct, request);
+	//     request_res = request_result(request_struct);
+	// }
+	// else
+	// {
+	//     request_res = 400;
+	// }
+
+	puts("\nMETHOD:");
+	printf("%s\n", request_struct->method);
+
+	puts("\nPATH:");
+	printf("%s\n", request_struct->path->first->string);
+
+	puts("\nABSOLUTE PATH:");
+	printf("%s\n", absPath(request_struct->path->first->string));
+
+	puts("\nCONTENT-LENGTH:");
+	printf("%zu\n", request_struct->content_length);
+
+	puts("\nKEYS:");
+	request_print_all_keys(request_struct);
+
+	puts("\nVALUES:");
+	request_print_all_values(request_struct);
+
+	Response *response = response_generate(request_struct);
+	char *response_str = NULL;
+	size_t resp_str_len = response_to_string(response, &response_str);
+
+	puts("\n========================RESPONSE========================\n");
+	fwrite(response_str, 1, resp_str_len, stdout);
+	puts("\n=======================================================\n");
+
+	ssize_t reply = send(client, response_str, resp_str_len, 0);
+
+	if (reply == -1)
+	{
+		perror("Send failed");
+	}
+	else
+	{
+		perror("Sended");
+	}
+
+	request_free(request_struct);
+	response_free(response);
+	free(response_str);
+
+	close(client);
+	pthread_exit(NULL);
 }

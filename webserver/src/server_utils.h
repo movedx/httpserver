@@ -15,9 +15,6 @@
 #include "string_utils.h"
 #include "stringlist.h"
 
-#define MAX_HEADER_FIELDS 30
-#define MAX_HEADER_FIELDKEY_SIZE 32
-#define MAX_HEADER_FIELDVALUE_SIZE 256
 #define MAX_MESSAGE_SIZE 4096
 
 #define RESPONSESTART "HTTP/1.1 "

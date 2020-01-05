@@ -1,7 +1,7 @@
 # See https://www.gnu.org/software/make/manual/html_node/ for more information
 CC	= gcc
 CFLAGS	= -std=c99 -D_POSIX_C_SOURCE=200112L -g -Wall -Wextra -Wpedantic -Wbad-function-cast -lm \
-          -Wconversion -Wwrite-strings -Wstrict-prototypes -Wimplicit-function-declaration -D_GNU_SOURCE
+          -Wconversion -Wwrite-strings -Wstrict-prototypes -Wimplicit-function-declaration -D_GNU_SOURCE -pthread
 SRC_PATH = ../webserver/src
 CFILES  = ${SRC_PATH}/server_utils.c ${SRC_PATH}/server.c ${SRC_PATH}/file_utils.c ${SRC_PATH}/string_utils.c ${SRC_PATH}/stringlist.c
 # OFILES	= $(patsubst %.c, %.o, ${CFILES})
@@ -25,8 +25,8 @@ realclean: clean
 unittest: all
 	$(CC) $(CFLAGS) -o test ../webserver/src/test_stringlist.c ../webserver/src/stringlist.c
 
-test:	all
-	./test04.sh localhost:8080
+test:	server
+	./test06.sh localhost:8080
 
 beautify:
 	uncrustify -c ./uncrustify.cfg --replace ${CFILES}
@@ -39,5 +39,8 @@ test2:	server
 
 test4:	server
 	./test04.sh localhost:8080
+
+test6:	server
+	./test06.sh localhost:8080
 
 
