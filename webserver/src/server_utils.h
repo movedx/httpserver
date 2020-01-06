@@ -15,7 +15,7 @@
 #include "string_utils.h"
 #include "stringlist.h"
 
-#define MAX_MESSAGE_SIZE 4096
+#define MAX_MESSAGE_SIZE 512
 
 #define RESPONSESTART "HTTP/1.1 "
 #define RESPONSE400 "400 Bad Request\r\n"

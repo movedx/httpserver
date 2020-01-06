@@ -12,9 +12,8 @@
 
 #define DEFAULT_HOST "localhost"
 #define DEFAULT_PORT "8080"
-#define LISTENQUEUE 256 /* This server can only process one client simultaneously * \ \
-						 * How many connections do we want to queue? */
-#define MAX_THREADS 10
+#define LISTENQUEUE 256
+#define THREAD_LIMIT_DEFAULT 10
 
 int startServer(const char *iface, const char *port, struct addrinfo *res)
 {
@@ -64,42 +63,75 @@ void closeServer(struct addrinfo *res)
 
 void *socketThread(void *arg);
 
+static int thread_count = 0;
+pthread_mutex_t thread_count_mutex;
+
 int main(int argc, char *argv[])
 {
+	int THREADS_LIMIT = THREAD_LIMIT_DEFAULT;
+	int THREADS_SPAWN = 0;
+	char *PORT = (char *)DEFAULT_PORT;
+
+	if (argc == 2)
+	{
+		PORT = argv[1];
+	}
+	if (argc == 3 || argc == 4)
+	{
+		if (strcmp(argv[1], "-tl") == 0)
+		{
+			THREADS_LIMIT = atoi(argv[2]);
+		}
+		if (strcmp(argv[1], "-tp") == 0)
+		{
+			THREADS_SPAWN = atoi(argv[2]);
+		}
+		if (argc == 4)
+		{
+			PORT = argv[3];
+		}
+	}
+
+	// printf("Threads limit: %d\n", THREADS_LIMIT);
+	// printf("Threads spawn: %d\n", THREADS_SPAWN);
+	// printf("Port: %s\n", PORT);
+
 	const char *iface = NULL;
-	const char *port = argc == 2 ? argv[1] : DEFAULT_PORT;
+	const char *port = argc == 2 ? argv[1] : PORT;
 	struct addrinfo *res = NULL;
 
 	int listenfd = startServer(iface, port, res);
 
-	pthread_t tid[MAX_THREADS];
-	int i = 0;
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+	// pthread_attr_setstacksize(&attr, 8388608);
+	pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
+
+	pthread_t tid[THREADS_LIMIT];
+
+	if (THREADS_SPAWN != 0)
+	{
+		THREADS_LIMIT = THREADS_SPAWN;
+	}
 
 	while (1)
 	{
-		struct sockaddr_in clientaddr;
-		socklen_t addrlen = sizeof(clientaddr);
-		int client = accept(listenfd, (struct sockaddr *)&clientaddr, &addrlen);
-
-		if (client < 0)
+		if (thread_count < THREADS_LIMIT)
 		{
-			perror("accept error");
-		}
-
-		if (pthread_create(&tid[i], NULL, socketThread, &client) != 0)
-		{
-			printf("Failed to create thread\n");
-		}
-
-		if (i >= MAX_THREADS)
-		{
-			i = 0;
-			while (i < MAX_THREADS)
+			pthread_mutex_lock(&thread_count_mutex);
+			if (pthread_create(&tid[thread_count], &attr, socketThread, &listenfd) != 0)
 			{
-				pthread_join(tid[i++], NULL);
+				pthread_mutex_unlock(&thread_count_mutex);
+				perror("Failed to create thread\n");
 			}
-			i = 0;
+			else
+			{
+				thread_count++;
+				pthread_mutex_unlock(&thread_count_mutex);
+			}
 		}
+		usleep(100);
 	}
 
 	closeServer(res);
@@ -109,9 +141,18 @@ int main(int argc, char *argv[])
 
 void *socketThread(void *arg)
 {
-	char request[MAX_MESSAGE_SIZE];
+	struct sockaddr_in clientaddr;
+	socklen_t addrlen = sizeof(clientaddr);
+	int listenfd = *((int *)arg);
+	int client = accept(listenfd, (struct sockaddr *)&clientaddr, &addrlen);
 
-	int client = *((int *)arg);
+	if (client < 0)
+	{
+		perror("accept error");
+	}
+
+	char *request = malloc(MAX_MESSAGE_SIZE);
+
 	ssize_t result = recv(client, request, MAX_MESSAGE_SIZE, 0);
 
 	if (result > 0)
@@ -131,51 +172,39 @@ void *socketThread(void *arg)
 
 	// shutdown(client, SHUT_RD);
 
-	printf("\n=========================REQUEST=========================\n");
-	printf("%s\n", request);
-	puts("\n========================================================\n");
+	// printf("\n=========================REQUEST=========================\n");
+	// printf("%s\n", request);
+	// puts("\n========================================================\n");
 
 	Request *request_struct = malloc(sizeof(Request));
 
 	parse_request(request_struct, request);
 
-	// int request_res = 0;
+	// puts("\nMETHOD:");
+	// printf("%s\n", request_struct->method);
 
-	// if (validate_request(request))
-	// {
-	//     parse_request(request_struct, request);
-	//     request_res = request_result(request_struct);
-	// }
-	// else
-	// {
-	//     request_res = 400;
-	// }
+	// puts("\nPATH:");
+	// printf("%s\n", request_struct->path->first->string);
 
-	puts("\nMETHOD:");
-	printf("%s\n", request_struct->method);
+	// puts("\nABSOLUTE PATH:");
+	// printf("%s\n", absPath(request_struct->path->first->string));
 
-	puts("\nPATH:");
-	printf("%s\n", request_struct->path->first->string);
+	// puts("\nCONTENT-LENGTH:");
+	// printf("%zu\n", request_struct->content_length);
 
-	puts("\nABSOLUTE PATH:");
-	printf("%s\n", absPath(request_struct->path->first->string));
+	// puts("\nKEYS:");
+	// request_print_all_keys(request_struct);
 
-	puts("\nCONTENT-LENGTH:");
-	printf("%zu\n", request_struct->content_length);
-
-	puts("\nKEYS:");
-	request_print_all_keys(request_struct);
-
-	puts("\nVALUES:");
-	request_print_all_values(request_struct);
+	// puts("\nVALUES:");
+	// request_print_all_values(request_struct);
 
 	Response *response = response_generate(request_struct);
 	char *response_str = NULL;
 	size_t resp_str_len = response_to_string(response, &response_str);
 
-	puts("\n========================RESPONSE========================\n");
-	fwrite(response_str, 1, resp_str_len, stdout);
-	puts("\n=======================================================\n");
+	// puts("\n========================RESPONSE========================\n");
+	// fwrite(response_str, 1, resp_str_len, stdout);
+	// puts("\n=======================================================\n");
 
 	ssize_t reply = send(client, response_str, resp_str_len, 0);
 
@@ -185,13 +214,19 @@ void *socketThread(void *arg)
 	}
 	else
 	{
-		perror("Sended");
+		printf("Sended");
 	}
 
 	request_free(request_struct);
 	response_free(response);
 	free(response_str);
+	free(request);
 
 	close(client);
+
+	pthread_mutex_lock(&thread_count_mutex);
+	thread_count--;
+	pthread_mutex_unlock(&thread_count_mutex);
+
 	pthread_exit(NULL);
 }

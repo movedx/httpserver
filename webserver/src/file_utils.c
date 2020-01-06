@@ -29,7 +29,7 @@ int listdir(const char *path, char **buffer)
 		strcat(*buffer, "</body></html>");
 		closedir(d);
 	}
-	sleep(3);
+	sleep(IO_DELAY);
 	return 0;
 }
 
@@ -62,7 +62,7 @@ ssize_t readfile(const char *path, char **buffer)
 	}
 
 	fclose(fp);
-	sleep(3);
+	sleep(IO_DELAY);
 	return (int)flen;
 }
 
