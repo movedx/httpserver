@@ -1,4 +1,4 @@
-#define CACHE_UTILS.H
+#pragma once
 #define CACHE_SIZE 10
 
 #include <stdlib.h>
