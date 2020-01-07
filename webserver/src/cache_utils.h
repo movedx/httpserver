@@ -1,4 +1,4 @@
-#define CACHE_UTILS.H
+#pragma once
 #define CACHE_SIZE 10
 
 #include <stdlib.h>
@@ -6,13 +6,13 @@
 #include <string.h>
 #include <assert.h>
 #include <pthread.h>
+#include <stdbool.h>
 
 typedef struct Cache_Entry
 {
-        char* path;
-        char* data;
+        char *path;
+        char *data;
         int lastacc; // Letzte Änderung
-        pthread_rwlock_t lock_rw;
 } Cache_Entry;
 
 typedef struct Cache
@@ -22,7 +22,8 @@ typedef struct Cache
 } Cache;
 
 void delOldestEntry(Cache *cache);
-size_t insert_entry(Cache *cache, Cache_Entry *entry);
-_Bool isFileinCache(Cache *cache, char *path);
-char *getFileInCache(Cache *cache, Cache_Entry *entry);
+ssize_t insert_entry(Cache *cache, Cache_Entry *entry);
+bool isFileinCache(Cache *cache, char *path);
+void upateLastAcc(Cache *cache, Cache_Entry *entry);
+Cache_Entry *getEntryInCache(Cache *cache, char *path);
 int freeCachespace(Cache *cache);
