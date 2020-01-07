@@ -17,6 +17,7 @@ void delOldestEntry(Cache *cache)
        free(cache->oldest->path); 
        free(cache->oldest->data); 
        free(cache->oldest);
+       cache->oldest = NULL;
         
 }
 ssize_t insertEntry(Cache *cache, Cache_Entry *entry)
