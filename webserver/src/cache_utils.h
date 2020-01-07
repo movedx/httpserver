@@ -1,4 +1,4 @@
-#define CACHE_UTILS.H
+#pragma once
 #define CACHE_SIZE 10
 
 #include <stdlib.h>
@@ -9,8 +9,8 @@
 
 typedef struct Cache_Entry
 {
-        char* path;
-        char* data;
+        char *path;
+        char *data;
         int lastacc; // Letzte Änderung
         pthread_rwlock_t lock_rw;
 } Cache_Entry;

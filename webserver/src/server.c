@@ -106,14 +106,14 @@ int main(int argc, char *argv[])
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 	// pthread_attr_setstacksize(&attr, 8388608);
-	pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
-
-	pthread_t tid[THREADS_LIMIT];
+	// pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
 
 	if (THREADS_SPAWN != 0)
 	{
 		THREADS_LIMIT = THREADS_SPAWN;
 	}
+
+	pthread_t tid[THREADS_LIMIT];
 
 	while (1)
 	{
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
 			if (pthread_create(&tid[thread_count], &attr, socketThread, &listenfd) != 0)
 			{
 				pthread_mutex_unlock(&thread_count_mutex);
-				perror("Failed to create thread\n");
+				perror("Failed to create thread");
 			}
 			else
 			{
@@ -131,11 +131,9 @@ int main(int argc, char *argv[])
 				pthread_mutex_unlock(&thread_count_mutex);
 			}
 		}
-		usleep(100);
 	}
 
 	closeServer(res);
-
 	return 0;
 }
 
@@ -211,10 +209,6 @@ void *socketThread(void *arg)
 	if (reply == -1)
 	{
 		perror("Send failed");
-	}
-	else
-	{
-		printf("Sended");
 	}
 
 	request_free(request_struct);
