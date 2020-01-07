@@ -354,7 +354,7 @@ Response *response_generate(Request *request, Cache *cache)
     response->headers_amount = 0;
     response->statuscode = response_status_code(request);
 
-    Cache_Entry *entry;
+    struct Cache_Entry *entry=NULL;
     const char *abspath = absPath(request->path->first->string);
     if (response->statuscode == 200)
     {
