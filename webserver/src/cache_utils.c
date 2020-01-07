@@ -68,7 +68,7 @@ void updateLastAcc(Cache *cache, Cache_Entry *entry)
 //--------------------------------------------------------------------------- 
 
 }
-Cache_Entry *getEntryInCache(Cache *cache, char *path)
+Cache_Entry *getEntryInCache(Cache *cache,const char *path)
 {
        struct Cache_Entry *entry;
        for(int i =0; i < CACHE_SIZE; i++)
