@@ -15,8 +15,8 @@
 #define LISTENQUEUE 256
 #define THREAD_LIMIT_DEFAULT 10
 
+Cache *cache;
 
-struct Cache *cache;
 int startServer(const char *iface, const char *port, struct addrinfo *res)
 {
 	int listenfd;
@@ -117,6 +117,8 @@ int main(int argc, char *argv[])
 
 	pthread_t tid[THREADS_LIMIT];
 
+	cache = malloc(sizeof(Cache));
+
 	while (1)
 	{
 		if (thread_count < THREADS_LIMIT)
@@ -134,7 +136,8 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
-
+	cache_free(cache);
+	free(cache);
 	closeServer(res);
 	return 0;
 }
@@ -198,7 +201,7 @@ void *socketThread(void *arg)
 	// puts("\nVALUES:");
 	// request_print_all_values(request_struct);
 
-	Response *response = response_generate(request_struct, cache);
+	Response *response = response_generate(request_struct);
 	char *response_str = NULL;
 	size_t resp_str_len = response_to_string(response, &response_str);
 

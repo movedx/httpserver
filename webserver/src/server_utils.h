@@ -39,6 +39,8 @@
 
 extern const char *ALLOWED_METHODS;
 
+extern Cache *cache;
+
 typedef struct Request
 {
     char *method;
@@ -105,7 +107,7 @@ void response_add_content(Response *response, char *data, size_t size);
 
 void response_set_status_line(Response *response, int statuscode);
 
-Response *response_generate(Request *request, Cache *cache);
+Response *response_generate(Request *request);
 
 // Returns the string, caller needs to free it
 char *response_make_date_header(void);

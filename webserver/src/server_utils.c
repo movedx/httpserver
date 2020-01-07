@@ -5,6 +5,8 @@ bool _contains_any_headers(const char *msg);
 const char *ALLOWED_METHODS = "GET"
                               "POST"; //todo: add methods
 
+pthread_mutex_t cache_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 int parse_request(Request *request, char *msg)
 {
     bool contains_fields = _contains_any_headers(msg);
@@ -342,7 +344,7 @@ void response_free(Response *response)
     free(response);
 }
 
-Response *response_generate(Request *request, Cache *cache)
+Response *response_generate(Request *request)
 {
     Response *response = malloc(sizeof(Response));
 
@@ -352,15 +354,14 @@ Response *response_generate(Request *request, Cache *cache)
     response->headers_amount = 0;
     response->statuscode = response_status_code(request);
 
-    struct CacheEntry *entry = NULL;
     const char *abspath = absPath(request->path->first->string);
     if (response->statuscode == 200)
     {
         if (is_regular_file(abspath))
         {
+            CacheEntry *entry = malloc(sizeof(CacheEntry));
             char *file_bytes = NULL;
-            bool inCache = cache_is_file_in(cache, abspath);
-            if (!inCache)
+            if (!cache_is_file_in(cache, abspath))
             {
                 ssize_t file_size = readfile(abspath, &file_bytes);
                 if (file_size < 0)
@@ -369,16 +370,25 @@ Response *response_generate(Request *request, Cache *cache)
                 }
                 entry->path = calloc(1, sizeof(abspath) + 1);
                 strcpy(entry->path, abspath);
-                entry->data = calloc(1, sizeof(file_bytes) + 1);
+                entry->data = calloc(1, (size_t)file_size + 1);
                 strcpy(entry->data, file_bytes);
                 entry->lastacc = 10;
-                ssize_t insert = cache_insert_entry(cache, entry);
+                pthread_mutex_lock(&cache_mutex);
+                ssize_t insert = cache_insert_entry(cache, &entry);
+                pthread_mutex_unlock(&cache_mutex);
+
                 if (insert < 0)
                 {
                     exit(1);
                 }
             }
-            entry = cache_get_entry(cache, abspath);
+            pthread_mutex_lock(&cache_mutex);
+            cache_get_entry(cache, &entry, abspath);
+            pthread_mutex_unlock(&cache_mutex);
+            if (entry == NULL)
+            {
+                exit(1);
+            }
             response_add_content(response, entry->data, sizeof(entry->data) + 1);
             free(file_bytes);
 

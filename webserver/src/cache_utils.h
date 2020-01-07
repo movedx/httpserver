@@ -22,8 +22,9 @@ typedef struct Cache
 } Cache;
 
 void cache_delete_oldest_entry(Cache *cache);
-ssize_t cache_insert_entry(Cache *cache, CacheEntry *entry);
+ssize_t cache_insert_entry(Cache *cache, CacheEntry **entry);
 bool cache_is_file_in(Cache *cache, const char *path);
 void cache_upate_last_acc(Cache *cache, CacheEntry *entry);
-CacheEntry *cache_get_entry(Cache *cache, const char *path);
+int cache_get_entry(Cache *cache, CacheEntry **dest, const char *path);
 int cache_get_free_place(Cache *cache);
+void cache_free(Cache *cache);

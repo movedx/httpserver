@@ -14,30 +14,37 @@ int cache_get_free_place(Cache *cache)
 
 void cache_delete_oldest_entry(Cache *cache)
 {
-    free(cache->oldest->path);
-    free(cache->oldest->data);
-    free(cache->oldest);
+    if (cache->cache && cache->oldest)
+    {
+        free(cache->oldest->path);
+        free(cache->oldest->data);
+        free(cache->oldest);
+    }
     cache->oldest = NULL;
 }
-ssize_t cache_insert_entry(Cache *cache, CacheEntry *entry)
+
+ssize_t cache_insert_entry(Cache *cache, CacheEntry **entry)
 {
     if (cache_get_free_place(cache) == CACHE_SIZE)
     {
         cache_delete_oldest_entry(cache);
     }
-    ssize_t result = (ssize_t)(cache->cache[cache_get_free_place(cache)] = entry);
+    ssize_t result = (ssize_t)(cache->cache[cache_get_free_place(cache)] = *entry);
     return result;
 }
+
 bool cache_is_file_in(Cache *cache, const char *path)
 {
-    bool inCache = 0;
     for (int i = 0; i < CACHE_SIZE; i++)
     {
-        if (strcmp(cache->cache[i]->path, path))
-            inCache = 1;
+        if (cache->cache[i] && strcmp(cache->cache[i]->path, path) == 0)
+        {
+            return true;
+        }
     }
-    return inCache;
+    return false;
 }
+
 void cache_upate_last_acc(Cache *cache, CacheEntry *entry)
 {
     //---------------------------------------------------------------------------
@@ -65,13 +72,26 @@ void cache_upate_last_acc(Cache *cache, CacheEntry *entry)
     }
     //---------------------------------------------------------------------------
 }
-CacheEntry *cache_get_entry(Cache *cache, const char *path)
+
+int cache_get_entry(Cache *cache, CacheEntry **dest, const char *path)
 {
-    struct CacheEntry *entry;
     for (int i = 0; i < CACHE_SIZE; i++)
     {
-        if (strcmp(cache->cache[i]->path, path))
-            entry = cache->cache[i];
+        if (cache->cache[i] && strcmp(cache->cache[i]->path, path))
+        {
+            *dest = cache->cache[i];
+            return 0;
+        }
     }
-    return entry;
+    return -1;
+}
+
+void cache_free(Cache *cache)
+{
+    for (int i = 0; i < CACHE_SIZE; i++)
+    {
+        free(cache->cache[i]->data);
+        free(cache->cache[i]->path);
+        free(cache->cache[i]);
+    }
 }
