@@ -19,16 +19,16 @@ void delOldestEntry(Cache *cache)
        free(cache->oldest);
         
 }
-size_t insertEntry(Cache *cache, Cache_Entry *entry)
+ssize_t insertEntry(Cache *cache, Cache_Entry *entry)
 {
         if(freeCachespace(cache)==CACHE_SIZE)
         {
                 delOldestEntry(cache);
         }
-        size_t result = (cache->cache[freeCachespace(cache)]=entry);
+        size_t result = (size_t) (cache->cache[freeCachespace(cache)]=entry);
         return result;
 }
-_Bool isFileInCache(Cache *cache, char *path)
+bool isFileInCache(Cache *cache, char *path)
 {
         _Bool inCache = 0;
         for(int i=0; i< CACHE_SIZE; i++)
@@ -38,7 +38,7 @@ _Bool isFileInCache(Cache *cache, char *path)
         }
         return inCache;
 }
-char *getFileInCache(Cache *cache, Cache_Entry *entry)
+void updateLastAcc(Cache *cache, Cache_Entry *entry)
 {
 //---------------------------------------------------------------------------
 //      Setze den letzten Zugriff für jeden Cacheentry passend. 
@@ -66,6 +66,15 @@ char *getFileInCache(Cache *cache, Cache_Entry *entry)
 
         }
 //--------------------------------------------------------------------------- 
-        
-        return entry->data;
+
+}
+Cache_Entry *getEntryInCache(Cache *cache, char *path)
+{
+       struct Cache_Entry *entry;
+       for(int i =0; i < CACHE_SIZE; i++)
+        {
+                if(strcmp(cache->cache[i]->path, path))
+                        entry=cache->cache[i];
+        }
+        return entry;
 }
