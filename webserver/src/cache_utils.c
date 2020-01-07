@@ -25,7 +25,7 @@ size_t insertEntry(Cache *cache, Cache_Entry *entry)
         {
                 delOldestEntry(cache);
         }
-        size_t result = (size_t) (cache->cache[freeCachespace(cache)]=entry);
+        size_t result = (cache->cache[freeCachespace(cache)]=entry);
         return result;
 }
 _Bool isFileInCache(Cache *cache, char *path)
