@@ -8,22 +8,22 @@
 #include <pthread.h>
 #include <stdbool.h>
 
-typedef struct Cache_Entry
+typedef struct CacheEntry
 {
-        char *path;
-        char *data;
-        int lastacc; // Letzte Änderung
-} Cache_Entry;
+    char *path;
+    char *data;
+    int lastacc; // Letzte Änderung
+} CacheEntry;
 
 typedef struct Cache
 {
-        struct Cache_Entry *cache[CACHE_SIZE];
-        struct Cache_Entry *oldest;
+    struct CacheEntry *cache[CACHE_SIZE];
+    struct CacheEntry *oldest;
 } Cache;
 
-void delOldestEntry(Cache *cache);
-ssize_t insert_entry(Cache *cache, Cache_Entry *entry);
-bool isFileinCache(Cache *cache, char *path);
-void upateLastAcc(Cache *cache, Cache_Entry *entry);
-Cache_Entry *getEntryInCache(Cache *cache, const char *path);
-int freeCachespace(Cache *cache);
+void cache_delete_oldest_entry(Cache *cache);
+ssize_t cache_insert_entry(Cache *cache, CacheEntry *entry);
+bool cache_is_file_in(Cache *cache, const char *path);
+void cache_upate_last_acc(Cache *cache, CacheEntry *entry);
+CacheEntry *cache_get_entry(Cache *cache, const char *path);
+int cache_get_free_place(Cache *cache);

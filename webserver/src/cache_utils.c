@@ -1,81 +1,77 @@
 #include "cache_utils.h"
 
-int freeCachespace(Cache *cache)
+int cache_get_free_place(Cache *cache)
 {
-        for(int i=0; i < CACHE_SIZE; i++)
+    for (int i = 0; i < CACHE_SIZE; i++)
+    {
+        if (!(cache->cache[i]))
         {
-                if(cache->cache[i]==NULL)
-                {
-                      return i;
-                }
+            return i;
         }
-        return CACHE_SIZE; // Kein Platz
+    }
+    return CACHE_SIZE; // Kein Platz
 }
 
-void delOldestEntry(Cache *cache)
+void cache_delete_oldest_entry(Cache *cache)
 {
-       free(cache->oldest->path); 
-       free(cache->oldest->data); 
-       free(cache->oldest);
-       cache->oldest = NULL;
-        
+    free(cache->oldest->path);
+    free(cache->oldest->data);
+    free(cache->oldest);
+    cache->oldest = NULL;
 }
-ssize_t insertEntry(Cache *cache, Cache_Entry *entry)
+ssize_t cache_insert_entry(Cache *cache, CacheEntry *entry)
 {
-        if(freeCachespace(cache)==CACHE_SIZE)
-        {
-                delOldestEntry(cache);
-        }
-        ssize_t result = (ssize_t) (cache->cache[freeCachespace(cache)]=entry);
-        return result;
+    if (cache_get_free_place(cache) == CACHE_SIZE)
+    {
+        cache_delete_oldest_entry(cache);
+    }
+    ssize_t result = (ssize_t)(cache->cache[cache_get_free_place(cache)] = entry);
+    return result;
 }
-bool isFileInCache(Cache *cache, char *path)
+bool cache_is_file_in(Cache *cache, const char *path)
 {
-        _Bool inCache = 0;
-        for(int i=0; i< CACHE_SIZE; i++)
-        {
-                if (strcmp(cache->cache[i]->path, path))
-                        inCache=1;
-        }
-        return inCache;
+    bool inCache = 0;
+    for (int i = 0; i < CACHE_SIZE; i++)
+    {
+        if (strcmp(cache->cache[i]->path, path))
+            inCache = 1;
+    }
+    return inCache;
 }
-void updateLastAcc(Cache *cache, Cache_Entry *entry)
+void cache_upate_last_acc(Cache *cache, CacheEntry *entry)
 {
-//---------------------------------------------------------------------------
-//      Setze den letzten Zugriff für jeden Cacheentry passend. 
-        for(int i = 0; i < CACHE_SIZE; i++)
+    //---------------------------------------------------------------------------
+    //      Setze den letzten Zugriff für jeden Cacheentry passend.
+    for (int i = 0; i < CACHE_SIZE; i++)
+    {
+        if (cache->cache[i] != NULL)
         {
-                if(cache->cache[i] != NULL)
-                {
-                        if(cache->cache[i]->lastacc > entry->lastacc)
-                        {
-                                cache->cache[i]->lastacc--;
-                        }
-                }
-
+            if (cache->cache[i]->lastacc > entry->lastacc)
+            {
+                cache->cache[i]->lastacc--;
+            }
         }
-        entry->lastacc=10;
-        for(int i = 0; i < CACHE_SIZE; i++)
+    }
+    entry->lastacc = 10;
+    for (int i = 0; i < CACHE_SIZE; i++)
+    {
+        if (cache->cache[i] != NULL)
         {
-                if(cache->cache[i] != NULL)
-                {
-                        if(cache->cache[i]->lastacc == 1)
-                        {
-                                cache->oldest=cache->cache[1];
-                        }
-                }
-
+            if (cache->cache[i]->lastacc == 1)
+            {
+                cache->oldest = cache->cache[1];
+            }
         }
-//--------------------------------------------------------------------------- 
-
+    }
+    //---------------------------------------------------------------------------
 }
-Cache_Entry *getEntryInCache(Cache *cache, const char *path)
+CacheEntry *cache_get_entry(Cache *cache, const char *path)
 {
-       struct Cache_Entry *entry;
-       for(int i =0; i < CACHE_SIZE; i++)
-        {
-                if(strcmp(cache->cache[i]->path, path))
-                        entry=cache->cache[i];
-        }
-        return entry;
+    struct CacheEntry *entry;
+    for (int i = 0; i < CACHE_SIZE; i++)
+    {
+        if (strcmp(cache->cache[i]->path, path))
+            entry = cache->cache[i];
+    }
+    return entry;
 }

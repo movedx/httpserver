@@ -1,8 +1,6 @@
 #include "server_utils.h"
 
 bool _contains_any_headers(const char *msg);
-ssize_t insertEntry(Cache *cache,Cache_Entry *entry);
-bool isFileInCache(Cache *cache,const char *path);
 
 const char *ALLOWED_METHODS = "GET"
                               "POST"; //todo: add methods
@@ -354,35 +352,34 @@ Response *response_generate(Request *request, Cache *cache)
     response->headers_amount = 0;
     response->statuscode = response_status_code(request);
 
-    struct Cache_Entry *entry=NULL;
+    struct CacheEntry *entry = NULL;
     const char *abspath = absPath(request->path->first->string);
     if (response->statuscode == 200)
     {
         if (is_regular_file(abspath))
         {
             char *file_bytes = NULL;
-            bool inCache = isFileInCache(cache, abspath);
-            if(!inCache)
+            bool inCache = cache_is_file_in(cache, abspath);
+            if (!inCache)
             {
-                sleep(3);
                 ssize_t file_size = readfile(abspath, &file_bytes);
                 if (file_size < 0)
                 {
-                        exit(1);
+                    exit(1);
                 }
-                entry->path = calloc(1,sizeof(abspath)+1);
-                strcpy(entry->path,abspath);
-                entry->data = calloc(1,sizeof(file_bytes)+1);
+                entry->path = calloc(1, sizeof(abspath) + 1);
+                strcpy(entry->path, abspath);
+                entry->data = calloc(1, sizeof(file_bytes) + 1);
                 strcpy(entry->data, file_bytes);
-                entry->lastacc=10;
-                ssize_t insert = insertEntry(cache, entry);
+                entry->lastacc = 10;
+                ssize_t insert = cache_insert_entry(cache, entry);
                 if (insert < 0)
                 {
-                        exit(1);
+                    exit(1);
                 }
             }
-            entry=getEntryInCache(cache, abspath);
-            response_add_content(response, entry->data, sizeof(entry->data)+1);
+            entry = cache_get_entry(cache, abspath);
+            response_add_content(response, entry->data, sizeof(entry->data) + 1);
             free(file_bytes);
 
             response_set_content_type(response, abspath);
