@@ -1,6 +1,8 @@
 #include "server_utils.h"
 
 bool _contains_any_headers(const char *msg);
+ssize_t insertEntry(Cache *cache,Cache_Entry *entry);
+bool isFileInCache(Cache *cache,const char *path);
 
 const char *ALLOWED_METHODS = "GET"
                               "POST"; //todo: add methods
@@ -352,13 +354,13 @@ Response *response_generate(Request *request, Cache *cache)
     response->headers_amount = 0;
     response->statuscode = response_status_code(request);
 
+    Cache_Entry *entry;
     const char *abspath = absPath(request->path->first->string);
     if (response->statuscode == 200)
     {
         if (is_regular_file(abspath))
         {
             char *file_bytes = NULL;
-            struct Cache_Entry *entry;
             bool inCache = isFileInCache(cache, abspath);
             if(!inCache)
             {
@@ -368,9 +370,9 @@ Response *response_generate(Request *request, Cache *cache)
                 {
                         exit(1);
                 }
-                entry->path=malloc(sizeof(abspath)+1);
+                entry->path = malloc(sizeof(abspath)+1);
                 strcpy(entry->path,abspath);
-                entry->data=malloc(sizeof(file_bytes)+1);
+                entry->data = malloc(sizeof(file_bytes)+1);
                 strcpy(entry->data, file_bytes);
                 entry->lastacc=10;
                 ssize_t insert = insertEntry(cache, entry);
