@@ -25,7 +25,7 @@ ssize_t insertEntry(Cache *cache, Cache_Entry *entry)
         {
                 delOldestEntry(cache);
         }
-        size_t result = (size_t) (cache->cache[freeCachespace(cache)]=entry);
+        ssize_t result = (ssize_t) (cache->cache[freeCachespace(cache)]=entry);
         return result;
 }
 bool isFileInCache(Cache *cache, char *path)
@@ -68,7 +68,7 @@ void updateLastAcc(Cache *cache, Cache_Entry *entry)
 //--------------------------------------------------------------------------- 
 
 }
-Cache_Entry *getEntryInCache(Cache *cache,const char *path)
+Cache_Entry *getEntryInCache(Cache *cache, const char *path)
 {
        struct Cache_Entry *entry;
        for(int i =0; i < CACHE_SIZE; i++)
