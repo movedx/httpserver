@@ -370,9 +370,9 @@ Response *response_generate(Request *request, Cache *cache)
                 {
                         exit(1);
                 }
-                entry->path = malloc(sizeof(abspath)+1);
+                entry->path = calloc(sizeof(abspath)+1);
                 strcpy(entry->path,abspath);
-                entry->data = malloc(sizeof(file_bytes)+1);
+                entry->data = calloc(sizeof(file_bytes)+1);
                 strcpy(entry->data, file_bytes);
                 entry->lastacc=10;
                 ssize_t insert = insertEntry(cache, entry);
