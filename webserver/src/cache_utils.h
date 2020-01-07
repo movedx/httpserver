@@ -25,5 +25,5 @@ void delOldestEntry(Cache *cache);
 ssize_t insert_entry(Cache *cache, Cache_Entry *entry);
 bool isFileinCache(Cache *cache, char *path);
 void upateLastAcc(Cache *cache, Cache_Entry *entry);
-Cache_Entry *getEntryInCache(Cache *cache, char *path);
+Cache_Entry *getEntryInCache(Cache *cache,const char *path);
 int freeCachespace(Cache *cache);
