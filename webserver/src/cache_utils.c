@@ -29,8 +29,8 @@ ssize_t cache_insert_entry(Cache *cache, CacheEntry **entry)
     {
         cache_delete_oldest_entry(cache);
     }
-    ssize_t result = (ssize_t)(cache->cache[cache_get_free_place(cache)] = *entry);
-    return result;
+    cache->cache[cache_get_free_place(cache)] = *entry;
+    return 1;
 }
 
 bool cache_is_file_in(Cache *cache, const char *path)
@@ -77,7 +77,7 @@ int cache_get_entry(Cache *cache, CacheEntry **dest, const char *path)
 {
     for (int i = 0; i < CACHE_SIZE; i++)
     {
-        if (cache->cache[i] && strcmp(cache->cache[i]->path, path))
+        if (cache->cache[i] && strcmp(cache->cache[i]->path, path) == 0)
         {
             *dest = cache->cache[i];
             return 0;

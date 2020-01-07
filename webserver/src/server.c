@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
 
 	pthread_t tid[THREADS_LIMIT];
 
-	cache = malloc(sizeof(Cache));
+	cache = calloc(1, sizeof(Cache));
 
 	while (1)
 	{

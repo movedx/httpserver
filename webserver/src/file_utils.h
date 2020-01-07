@@ -6,7 +6,7 @@
 #include "server_utils.h"
 #include "stringlist.h"
 
-#define IO_DELAY 0
+#define IO_DELAY 3
 
 // returns
 // 1 if index.html exists
