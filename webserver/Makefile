@@ -26,7 +26,7 @@ unittest: all
 	$(CC) $(CFLAGS) -o test ../webserver/src/test_stringlist.c ../webserver/src/stringlist.c
 
 test:	server
-	./test06.sh localhost:8080
+	./test08.sh localhost:8080
 
 beautify:
 	uncrustify -c ./uncrustify.cfg --replace ${CFILES}
@@ -42,5 +42,8 @@ test4:	server
 
 test6:	server
 	./test06.sh localhost:8080
+
+test8:	server
+	./test08.sh localhost:8080
 
 
