@@ -33,7 +33,7 @@
 #define CONTENT_TYPE_TEXT_HTML "Content-Type: text/html\r\n"
 #define CONTENT_TYPE_APPLICATION_OCTETSTREAM "Content-Type: application/octet-stream\r\n"
 #define CONTENT_TYPE_IMAGE_JPEG "Content-Type: image/jpeg\r\n"
-#define ROOTDIR "/tmp/www"
+#define ROOTDIR "/var/www"
 
 #define HELLOWORLD "Hello World!\n"
 
