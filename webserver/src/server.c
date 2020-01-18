@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include "server_utils.h"
 #include <pthread.h>
+#include <pwd.h>
 
 #define DEFAULT_HOST "localhost"
 #define DEFAULT_PORT "8080"
@@ -116,6 +117,26 @@ int main(int argc, char *argv[])
 	struct addrinfo *res = NULL;
 
 	int listenfd = startServer(iface, port, res);
+
+	struct passwd *pwd = getpwnam("www-data");
+	if (pwd == NULL)
+	{
+		perror("getpwnam");
+	}
+
+	uid_t uid_www_data = pwd->pw_uid;
+	gid_t gid_www_data = pwd->pw_gid;
+
+	if (getuid() == 0)
+	{
+		if (chown(ROOTDIR, uid_www_data, gid_www_data) == -1)
+		{
+			perror("chown");
+		}
+
+		setuid(uid_www_data);
+		setgid(gid_www_data);
+	}
 
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
