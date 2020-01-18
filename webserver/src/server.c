@@ -67,10 +67,13 @@ void *socketThread(void *arg);
 
 static int thread_count = 0;
 pthread_mutex_t thread_count_mutex;
+pthread_mutex_t condition_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t condition_cond = PTHREAD_COND_INITIALIZER;
+
+int THREADS_LIMIT = THREAD_LIMIT_DEFAULT;
 
 int main(int argc, char *argv[])
 {
-	int THREADS_LIMIT = THREAD_LIMIT_DEFAULT;
 	int THREADS_SPAWN = 0;
 	char *PORT = (char *)DEFAULT_PORT;
 
@@ -135,6 +138,12 @@ int main(int argc, char *argv[])
 				pthread_mutex_unlock(&thread_count_mutex);
 			}
 		}
+		pthread_mutex_lock(&condition_mutex);
+		while (thread_count >= THREADS_LIMIT)
+		{
+			pthread_cond_wait(&condition_cond, &condition_mutex);
+		}
+		pthread_mutex_unlock(&condition_mutex);
 	}
 	cache_free(cache);
 	free(cache);
@@ -226,6 +235,13 @@ void *socketThread(void *arg)
 	pthread_mutex_lock(&thread_count_mutex);
 	thread_count--;
 	pthread_mutex_unlock(&thread_count_mutex);
+
+	pthread_mutex_lock(&condition_mutex);
+	if (thread_count < THREADS_LIMIT)
+	{
+		pthread_cond_signal(&condition_cond);
+	}
+	pthread_mutex_unlock(&condition_mutex);
 
 	pthread_exit(NULL);
 }
