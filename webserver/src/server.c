@@ -14,6 +14,7 @@
 #define DEFAULT_PORT "8080"
 #define LISTENQUEUE 256
 #define THREAD_LIMIT_DEFAULT 10
+#define TIMEOUT 5
 
 Cache *cache;
 
@@ -46,6 +47,15 @@ int startServer(const char *iface, const char *port, struct addrinfo *res)
 	{
 		perror("Could not bind to address");
 		exit(1);
+	}
+
+	struct timeval timeout;
+	timeout.tv_sec = TIMEOUT;
+	timeout.tv_usec = 0;
+
+	if (setsockopt(listenfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0)
+	{
+		perror("setsockopt failed\n");
 	}
 
 	if (listen(listenfd, LISTENQUEUE) != 0)
