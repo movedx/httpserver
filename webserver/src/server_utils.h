@@ -81,13 +81,13 @@ int response_status_code(Request *request);
 
 char *request_get_value_by_key(Request *request, const char *key);
 
-bool validate_request(char *request);
-
 void request_add_header_key_value(Request *request, const char *key, const char *value);
 
 void request_add_content(Request *request, const char *data);
 
 void request_free(Request *request);
+
+int request_validate(char *request);
 
 /*
  * Response functions 

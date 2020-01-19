@@ -65,7 +65,7 @@ void closeServer(struct addrinfo *res)
 	freeaddrinfo(res);
 }
 
-void *socketThread(void *arg);
+void *socket_thread(void *arg);
 
 static int thread_count = 0;
 pthread_mutex_t thread_count_mutex;
@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
 		pthread_mutex_lock(&thread_count_mutex);
 		if (thread_count < THREADS_LIMIT)
 		{
-			if (pthread_create(&tid[thread_count], &attr, socketThread, &listenfd) != 0)
+			if (pthread_create(&tid[thread_count], &attr, socket_thread, &listenfd) != 0)
 			{
 				perror("Failed to create thread");
 			}
@@ -172,7 +172,9 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-void *socketThread(void *arg)
+void socket_thread_exit(void);
+
+void *socket_thread(void *arg)
 {
 	usleep(10);
 	struct sockaddr_in clientaddr;
@@ -211,6 +213,12 @@ void *socketThread(void *arg)
 	if (result < 0)
 	{
 		perror("recv failed");
+	}
+
+	if (request_validate(request) != 0)
+	{
+		close(client);
+		socket_thread_exit();
 	}
 
 	// shutdown(client, SHUT_RD);
@@ -262,7 +270,13 @@ void *socketThread(void *arg)
 	free(request);
 
 	close(client);
+	socket_thread_exit();
 
+	return 0;
+}
+
+void socket_thread_exit()
+{
 	pthread_mutex_lock(&condition_mutex);
 	pthread_mutex_lock(&thread_count_mutex);
 	thread_count--;

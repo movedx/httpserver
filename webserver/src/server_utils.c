@@ -118,15 +118,19 @@ void request_print_all_values(Request *request)
     free(headers_str);
 }
 
-bool validate_request(char *request)
+int request_validate(char *request)
 {
-    // TODO: implement validation.
     request = request;
-    return 1;
+    return 0;
 }
 
 char *request_get_value_by_key(Request *request, const char *key)
 {
+    if (request->headers_amount == 0)
+    {
+        return NULL;
+    }
+
     struct stringlistnode *current = request->headers->first;
 
     while (current)
@@ -206,6 +210,12 @@ void request_free(Request *request)
 
 int response_status_code(Request *request)
 {
+    if (request->headers_amount == 0)
+    {
+        perror("No host field");
+        return 400;
+    }
+
     if (strncasecmp(request_get_value_by_key(request, "Host"), "localhost", strlen("localhost")) != 0)
     {
         /* Note: HTTP 1.0 lacks Host field, so this breaks it, but that's OK for us */
