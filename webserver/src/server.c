@@ -50,15 +50,6 @@ int startServer(const char *iface, const char *port, struct addrinfo *res)
 		exit(1);
 	}
 
-	struct timeval timeout;
-	timeout.tv_sec = TIMEOUT;
-	timeout.tv_usec = 0;
-
-	if (setsockopt(listenfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0)
-	{
-		perror("setsockopt failed\n");
-	}
-
 	if (listen(listenfd, LISTENQUEUE) != 0)
 	{
 		perror("Could not listen for connections on socket");
@@ -155,20 +146,19 @@ int main(int argc, char *argv[])
 
 	while (1)
 	{
+		pthread_mutex_lock(&thread_count_mutex);
 		if (thread_count < THREADS_LIMIT)
 		{
-			pthread_mutex_lock(&thread_count_mutex);
 			if (pthread_create(&tid[thread_count], &attr, socketThread, &listenfd) != 0)
 			{
-				pthread_mutex_unlock(&thread_count_mutex);
 				perror("Failed to create thread");
 			}
 			else
 			{
 				thread_count++;
-				pthread_mutex_unlock(&thread_count_mutex);
 			}
 		}
+		pthread_mutex_unlock(&thread_count_mutex);
 		pthread_mutex_lock(&condition_mutex);
 		while (thread_count >= THREADS_LIMIT)
 		{
@@ -184,6 +174,7 @@ int main(int argc, char *argv[])
 
 void *socketThread(void *arg)
 {
+	usleep(10);
 	struct sockaddr_in clientaddr;
 	socklen_t addrlen = sizeof(clientaddr);
 	int listenfd = *((int *)arg);
@@ -191,10 +182,19 @@ void *socketThread(void *arg)
 
 	if (client < 0)
 	{
-		perror("accept error");
+		perror("accept error\n");
 	}
 
 	char *request = malloc(MAX_MESSAGE_SIZE);
+
+	struct timeval timeout;
+	timeout.tv_sec = TIMEOUT;
+	timeout.tv_usec = 0;
+
+	if (setsockopt(client, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0)
+	{
+		perror("setsockopt failed\n");
+	}
 
 	ssize_t result = recv(client, request, MAX_MESSAGE_SIZE, 0);
 
@@ -263,15 +263,15 @@ void *socketThread(void *arg)
 
 	close(client);
 
+	pthread_mutex_lock(&condition_mutex);
 	pthread_mutex_lock(&thread_count_mutex);
 	thread_count--;
-	pthread_mutex_unlock(&thread_count_mutex);
 
-	pthread_mutex_lock(&condition_mutex);
 	if (thread_count < THREADS_LIMIT)
 	{
 		pthread_cond_signal(&condition_cond);
 	}
+	pthread_mutex_unlock(&thread_count_mutex);
 	pthread_mutex_unlock(&condition_mutex);
 
 	pthread_exit(NULL);
