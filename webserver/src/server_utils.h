@@ -15,6 +15,7 @@
 #include "string_utils.h"
 #include "stringlist.h"
 #include "cache_utils.h"
+#include <regex.h>
 
 #define MAX_MESSAGE_SIZE 512
 

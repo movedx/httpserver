@@ -120,8 +120,29 @@ void request_print_all_values(Request *request)
 
 int request_validate(char *request)
 {
-    request = request;
-    return 0;
+    //printf("\n%s\n", request);
+    regex_t regex;
+    const char *regex_str = "^GET\\s\\/([^\\s\\/\\]+\\/?)*\\sHTTP\\/1\\.1\r\n([^:\r\n]+:[^\r\n]+\r\n)*(\r\n)$.*";
+    if (regcomp(&regex, regex_str, REG_EXTENDED))
+    {
+        perror("Could not compile regex\n");
+        exit(1);
+    }
+    int reg_res = regexec(&regex, request, 0, NULL, 0);
+    regfree(&regex);
+    if (reg_res == 0)
+    {
+        return 0;
+    }
+    else if (reg_res == REG_NOMATCH)
+    {
+        return -1;
+    }
+    else
+    {
+        perror("Regex error");
+        return -1;
+    }
 }
 
 char *request_get_value_by_key(Request *request, const char *key)
