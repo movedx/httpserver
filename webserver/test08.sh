@@ -59,10 +59,8 @@ tnot () {
     echo -e "\t${GREEN}✔ $DESC${NC}"
   else
     echo -e "\t${RED}✘ $DESC${NC}"
-    echo "Got answer:"
+    echo "Got wrong answer:"
     echo "$RETURN"
-    echo "Expected answer was:"
-    echo "$EXPECTED"
     NUMBER_OF_FAILED_TESTS=$(($NUMBER_OF_FAILED_TESTS+1))
   fi
 }
@@ -72,7 +70,7 @@ testpid=$!
 
 echo
 echo Privileges
-tnot "$(ps -q $testpid -o uid= )" "0" "Server drops privileges"
+tnot "$(ps -q $testpid -o uid:1= )" "0" "Server drops privileges"
 
 echo
 echo Stability
