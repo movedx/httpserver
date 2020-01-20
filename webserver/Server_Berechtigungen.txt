@@ -6,4 +6,4 @@ drwxr-xr-x  2 root root  4096 Jan 20 10:23 ./
 drwxr-xr-x 10 root root  4096 Nov 27  2017 ../
 -rwxr-xr-x  1 root root 56384 Jan 20 10:23 server*
 
-Da unser Server nicht vom Repository verwaltet wird und damit nur local auf diesem System existiert, wird dieser unter /usr/local gespeichert. Um den Server zu ändern werden Root-Rechte benötigt. Damit den Server aber auch www-data ausführen kann, müssen alle die ausführberechtigung bekommen.
+Da unser Server nicht vom Repository verwaltet wird und damit nur local auf diesem System existiert, wird dieser unter /usr/local/sbin gespeichert. Man benutzt sbin für Skripte, welche Root Berechtigungen benötigen.
