@@ -1,6 +1,7 @@
 #include <netinet/ip.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -118,8 +119,13 @@ int main(int argc, char *argv[])
 	uid_t uid_www_data = pwd->pw_uid;
 	gid_t gid_www_data = pwd->pw_gid;
 
-	if (getuid() == 0)
+	if (getuid() != uid_www_data) // Falls der Server nicht mit den Rechten von  www-data ausgeführt wird
 	{
+                struct stat st = {0};
+                if (stat(ROOTDIR, &st) == -1) 
+                {
+                        mkdir(ROOTDIR, 0755);
+                }
 		if (chown(ROOTDIR, uid_www_data, gid_www_data) == -1)
 		{
 			perror("chown");
