@@ -1,0 +1,10 @@
+[Unit]
+Description=webserver project
+
+[Service]
+Type=simple
+ExecStart=/usr/local/sbin/server 80 
+# ExecStartPost=
+
+[Install]
+WantedBy=multi-user.target
