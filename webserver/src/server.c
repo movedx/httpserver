@@ -14,7 +14,7 @@
 #include <tls.h>
 
 #define DEFAULT_HOST "localhost"
-#define DEFAULT_PORT "8080"
+#define DEFAULT_PORT "443"
 #define LISTENQUEUE 256
 #define THREAD_LIMIT_DEFAULT 10
 #define TIMEOUT 5
@@ -33,10 +33,10 @@ int startServer(const char *iface, const char *port, struct addrinfo *res)
 	hints.ai_protocol = IPPROTO_TCP;
 	hints.ai_flags = AI_PASSIVE; /* socket will use bind later */
 
-	if (iface == NULL)
-	{
-		iface = DEFAULT_HOST;
-	}
+	// if (iface == NULL)
+	// {
+	// 	iface = DEFAULT_HOST;
+	// }
 
 	if (getaddrinfo(iface, port, &hints, &res) != 0)
 	{
