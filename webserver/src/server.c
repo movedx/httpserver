@@ -135,8 +135,11 @@ int main(int argc, char *argv[])
 			perror("chown");
 		}
 
-		setuid(uid_www_data);
-		setgid(gid_www_data);
+		if (getuid() != 0)
+		{
+			setuid(uid_www_data);
+			setgid(gid_www_data);
+		}
 	}
 
 	pthread_attr_t attr;
@@ -190,7 +193,26 @@ void *socket_thread(void *arg)
 	struct sockaddr_in clientaddr;
 	socklen_t addrlen = sizeof(clientaddr);
 	int listenfd = *((int *)arg);
+
+	uint8_t *mem;
+	size_t mem_len;
+	struct tls_config *cfg = NULL;
+	struct tls *ctx = NULL;  /* Server Context */
+	struct tls *cctx = NULL; /* Individual Client Socket */
+
+	cfg = tls_config_new();
+	/* Lädt das Zertifikat inklusive Chain */
+	mem = tls_load_file(CERTIFICATE_FILE, &mem_len, NULL);
+	tls_config_set_cert_mem(cfg, mem, mem_len);
+	/* Lädt den private Key eures Zertifikats */
+	mem = tls_load_file(CERTIFICATE_KEY, &mem_len, NULL);
+	tls_config_set_key_mem(cfg, mem, mem_len);
+	ctx = tls_server();
+	tls_configure(ctx, cfg);
+
 	int client = accept(listenfd, (struct sockaddr *)&clientaddr, &addrlen);
+
+	tls_accept_socket(ctx, &cctx, client);
 
 	if (client < 0)
 	{
@@ -208,7 +230,8 @@ void *socket_thread(void *arg)
 		perror("setsockopt failed\n");
 	}
 
-	ssize_t result = recv(client, request, MAX_MESSAGE_SIZE, 0);
+	//ssize_t result = recv(client, request, MAX_MESSAGE_SIZE, 0);
+	ssize_t result = tls_read(cctx, request, sizeof(request));
 
 	if (result > 0)
 	{
@@ -233,14 +256,17 @@ void *socket_thread(void *arg)
 
 	// shutdown(client, SHUT_RD);
 
+	// ************** DEBUG ****************
 	// printf("\n=========================REQUEST=========================\n");
 	// printf("%s\n", request);
 	// puts("\n========================================================\n");
+	// ******************************
 
 	Request *request_struct = malloc(sizeof(Request));
 
 	parse_request(request_struct, request);
 
+	// ************** DEBUG ****************
 	// puts("\nMETHOD:");
 	// printf("%s\n", request_struct->method);
 
@@ -258,16 +284,20 @@ void *socket_thread(void *arg)
 
 	// puts("\nVALUES:");
 	// request_print_all_values(request_struct);
+	// ******************************
 
 	Response *response = response_generate(request_struct);
 	char *response_str = NULL;
 	size_t resp_str_len = response_to_string(response, &response_str);
 
+	// ************** DEBUG ****************
 	// puts("\n========================RESPONSE========================\n");
 	// fwrite(response_str, 1, resp_str_len, stdout);
 	// puts("\n=======================================================\n");
+	// ******************************
 
-	ssize_t reply = send(client, response_str, resp_str_len, 0);
+	// ssize_t reply = send(client, response_str, resp_str_len, 0);
+	ssize_t reply = tls_write(cctx, response_str, resp_str_len);
 
 	if (reply == -1)
 	{
@@ -280,6 +310,11 @@ void *socket_thread(void *arg)
 	free(request);
 
 	close(client);
+
+	tls_free(cctx);
+	tls_close(ctx);
+	tls_free(ctx);
+
 	socket_thread_exit();
 
 	return 0;
