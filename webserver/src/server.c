@@ -19,6 +19,9 @@
 #define THREAD_LIMIT_DEFAULT 10
 #define TIMEOUT 5
 
+#define CERTIFICATE_FILE "/etc/letsencrypt/live/9d99aca9-6769-4307-9c15-332e214ec31b.fr.bw-cloud-instance.org/fullchain.pem"
+#define CERTIFICATE_KEY "/etc/letsencrypt/live/9d99aca9-6769-4307-9c15-332e214ec31b.fr.bw-cloud-instance.org/privkey.pem"
+
 Cache *cache;
 
 int startServer(const char *iface, const char *port, struct addrinfo *res)
