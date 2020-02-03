@@ -442,8 +442,6 @@ Response *response_generate(Request *request)
 
     response_add_header_line(response, RESPONSESERVER);
 
-    response_add_header_line(response, HSTS_HEADER_LINE);
-
     char *date_header = response_make_date_header();
     response_add_header_line(response, date_header);
     free(date_header);
