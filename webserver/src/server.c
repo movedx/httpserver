@@ -16,7 +16,7 @@
 #define DEFAULT_HOST "localhost"
 #define DEFAULT_PORT "443"
 #define LISTENQUEUE 256
-#define THREAD_LIMIT_DEFAULT 10
+#define THREAD_LIMIT_DEFAULT 11
 #define TIMEOUT 5
 
 #define CERTIFICATE_FILE "/etc/letsencrypt/live/9d99aca9-6769-4307-9c15-332e214ec31b.fr.bw-cloud-instance.org/fullchain.pem"
@@ -248,11 +248,13 @@ void *socket_thread(void *arg)
 		perror("recv failed");
 	}
 
-	if (request_validate(request) != 0)
-	{
-		close(client);
-		socket_thread_exit();
-	}
+	// if (request_validate(request) != 0)
+	// {
+	// 	perror(request);
+	// 	perror("request validation failed");
+	// 	close(client);
+	// 	socket_thread_exit();
+	// }
 
 	// shutdown(client, SHUT_RD);
 

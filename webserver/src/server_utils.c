@@ -207,9 +207,9 @@ void request_add_content(Request *request, const char *data)
 
 void request_free(Request *request)
 {
-    stringlist_free(request->content);
-    stringlist_free(request->headers);
-    stringlist_free(request->path);
+    //stringlist_free(request->content);
+    //stringlist_free(request->headers);
+    //stringlist_free(request->path);
     free(request);
 }
 
@@ -445,7 +445,7 @@ Response *response_generate(Request *request)
     char *date_header = response_make_date_header();
     response_add_header_line(response, date_header);
     free(date_header);
-
+    response_add_header_line(response, CONTENT_STRICT_TRANSPORT);
     response_add_header_key_value(response, "Content-Length", size_t_to_string(response->content_length));
 
     response_add_header_line(response, RESPONSECLOSE);
