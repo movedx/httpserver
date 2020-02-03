@@ -248,11 +248,13 @@ void *socket_thread(void *arg)
 		perror("recv failed");
 	}
 
-	if (request_validate(request) != 0)
-	{
-		close(client);
-		socket_thread_exit();
-	}
+	// if (request_validate(request) != 0)
+	// {
+	// 	perror(request);
+	// 	perror("request validation failed");
+	// 	close(client);
+	// 	socket_thread_exit();
+	// }
 
 	// shutdown(client, SHUT_RD);
 
