@@ -1,1 +1,1 @@
-Implementation of a subset of http protocol
+Implementation of a subset of the HTTP protocol.
